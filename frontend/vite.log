@@ -18,3 +18,5 @@ Error: read ECONNRESET
 AggregateError [ECONNREFUSED]: 
     at internalConnectMultiple (node:net:1193:18)
     at afterConnectMultiple (node:net:1783:7)
+[2m12:54:21 am[22m [36m[1m[vite][22m[39m [32mvite.config.js changed, restarting server...[39m
+[2m12:54:21 am[22m [36m[1m[vite][22m[39m server restarted.

@@ -7,6 +7,19 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },
   },
+  build: {
+    outDir: 'build',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          query: ['@tanstack/react-query'],
+          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
+          utils: ['jszip', 'js-yaml', 'axios'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {
