@@ -8,6 +8,12 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'backend/**' # Adjust this to your actual backend folder name
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
   workflow_dispatch:
 
 jobs:
