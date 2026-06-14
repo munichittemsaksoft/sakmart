@@ -20,3 +20,90 @@ AggregateError [ECONNREFUSED]:
     at afterConnectMultiple (node:net:1783:7)
 [2m12:54:21 am[22m [36m[1m[vite][22m[39m [32mvite.config.js changed, restarting server...[39m
 [2m12:54:21 am[22m [36m[1m[vite][22m[39m server restarted.
+[2m7:00:55 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/auth/register[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m8:29:10 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/auth/register[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m8:29:26 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/auth/register[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m9:12:05 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Navbar.jsx, /src/styles/globals.css[22m
+[2m9:12:26 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ProfilePage.jsx, /src/styles/globals.css[22m
+[2m9:15:40 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/App.jsx, /src/pages/EditTemplatePage.jsx, /src/pages/AuthPages.jsx, /src/components/layout/Navbar.jsx, /src/pages/DashboardPage.jsx, /src/pages/TemplateDetailPage.jsx, /src/pages/AdminPage.jsx, /src/pages/SubmitPage.jsx, /src/pages/ProfilePage.jsx, /src/pages/TemplatesPage.jsx, /src/pages/HomePage.jsx[22m
+[2m9:16:05 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ProfilePage.jsx, /src/styles/globals.css[22m
+[2m9:16:11 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/styles/globals.css[22m
+[2m9:16:16 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Navbar.jsx, /src/styles/globals.css[22m
+[2m9:16:22 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Navbar.jsx, /src/styles/globals.css[22m
+[2m9:20:14 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Navbar.jsx, /src/styles/globals.css[22m
+[2m9:20:19 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Navbar.jsx, /src/styles/globals.css[22m
+[2m9:24:18 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Navbar.jsx, /src/styles/globals.css[22m
+[2m9:27:53 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/App.jsx, /src/pages/EditTemplatePage.jsx, /src/pages/AuthPages.jsx, /src/components/layout/Navbar.jsx, /src/pages/DashboardPage.jsx, /src/pages/TemplateDetailPage.jsx, /src/pages/AdminPage.jsx, /src/pages/SubmitPage.jsx, /src/pages/ProfilePage.jsx, /src/pages/TemplatesPage.jsx, /src/pages/HomePage.jsx[22m
+[2m9:28:01 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/EditTemplatePage.jsx, /src/styles/globals.css[22m
+[2m9:28:08 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/EditTemplatePage.jsx, /src/styles/globals.css[22m
+[2m9:28:21 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/EditTemplatePage.jsx, /src/styles/globals.css[22m
+[2m9:28:28 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m9:28:37 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m9:39:51 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m9:40:04 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m9:55:12 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m9:55:17 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m9:55:22 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m9:55:31 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m9:55:38 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/EditTemplatePage.jsx, /src/styles/globals.css[22m
+[2m9:55:43 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/EditTemplatePage.jsx, /src/styles/globals.css[22m
+[2m9:55:55 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/EditTemplatePage.jsx, /src/styles/globals.css[22m
+[2m9:56:16 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/globals.css[22m
+[2m9:59:03 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m9:59:06 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m9:59:17 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m10:05:17 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AdminPage.jsx, /src/styles/globals.css[22m
+[2m10:05:27 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Navbar.jsx, /src/styles/globals.css[22m
+[2m10:05:37 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Navbar.jsx, /src/styles/globals.css[22m
+[2m10:05:44 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/layout/Navbar.jsx, /src/styles/globals.css[22m
+[2m10:05:49 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m10:22:22 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/SubmitPage.jsx, /src/styles/globals.css[22m
+[2m10:23:03 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/templates/AgentGraph.jsx, /src/styles/globals.css[22m
+[2m10:23:12 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/templates/AgentGraph.jsx, /src/styles/globals.css[22m
+[2m10:23:18 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/templates/AgentGraph.jsx, /src/styles/globals.css[22m
+[2m10:23:25 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateDetailPage.jsx, /src/styles/globals.css[22m
+[2m10:26:22 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/App.jsx, /src/pages/EditTemplatePage.jsx, /src/pages/AuthPages.jsx, /src/components/layout/Navbar.jsx, /src/pages/DashboardPage.jsx, /src/pages/TemplateDetailPage.jsx, /src/pages/AdminPage.jsx, /src/pages/SubmitPage.jsx, /src/pages/ProfilePage.jsx, /src/pages/TemplatesPage.jsx, /src/pages/HomePage.jsx[22m
+[2m10:26:29 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/App.jsx, /src/pages/EditTemplatePage.jsx, /src/pages/AuthPages.jsx, /src/components/layout/Navbar.jsx, /src/pages/DashboardPage.jsx, /src/pages/TemplateDetailPage.jsx, /src/pages/AdminPage.jsx, /src/pages/SubmitPage.jsx, /src/pages/ProfilePage.jsx, /src/pages/TemplatesPage.jsx, /src/pages/HomePage.jsx[22m
+[2m10:26:38 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/App.jsx, /src/pages/EditTemplatePage.jsx, /src/pages/AuthPages.jsx, /src/components/layout/Navbar.jsx, /src/pages/DashboardPage.jsx, /src/pages/TemplateDetailPage.jsx, /src/pages/AdminPage.jsx, /src/pages/SubmitPage.jsx, /src/pages/ProfilePage.jsx, /src/pages/TemplatesPage.jsx, /src/pages/HomePage.jsx[22m
+[2m10:34:35 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/App.jsx, /src/pages/EditTemplatePage.jsx, /src/pages/AuthPages.jsx, /src/components/layout/Navbar.jsx, /src/pages/DashboardPage.jsx, /src/pages/TemplateDetailPage.jsx, /src/pages/AdminPage.jsx, /src/pages/SubmitPage.jsx, /src/pages/ProfilePage.jsx, /src/pages/TemplatesPage.jsx, /src/pages/HomePage.jsx[22m
+[2m10:34:35 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/templates?page=1&size=6&sort_by=fork_count[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m10:34:35 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/auth/me[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m10:37:20 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/templates?page=1&size=6&sort_by=fork_count[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m10:37:21 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/templates?page=1&size=6&sort_by=fork_count[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m10:37:23 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/templates?page=1&size=12&sort_by=created_at[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m10:37:24 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/templates?page=1&size=12&sort_by=created_at[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m10:37:43 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/templates?page=1&size=12&sort_by=created_at[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m10:37:44 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/templates?page=1&size=12&sort_by=created_at[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m11:10:16 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/App.jsx, /src/pages/EditTemplatePage.jsx, /src/pages/AuthPages.jsx, /src/components/layout/Navbar.jsx, /src/pages/DashboardPage.jsx, /src/pages/TemplateDetailPage.jsx, /src/pages/AdminPage.jsx, /src/pages/SubmitPage.jsx, /src/pages/ProfilePage.jsx, /src/pages/TemplatesPage.jsx, /src/pages/HomePage.jsx[22m
