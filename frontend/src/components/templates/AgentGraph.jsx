@@ -22,24 +22,35 @@ function ts(tier) { return TIER[tier] ?? FALLBACK }
 // ── Tree layout helpers ───────────────────────────────────────────────────────
 
 /**
- * If no agent has an explicit `parent` field, infer connections from tier order:
- *   Leadership → Operations → Execution
- * Distributes children evenly across the parent tier.
+ * Normalize agents so every node has:
+ *   - a stable string `id`  (UUID from DB, or name, or index)
+ *   - a `parent` field that refers to another agent's id or name
+ *
+ * Priority for parent field: a.parent → a.parent_name → tier-inferred
  */
 function inferParents(agents) {
-  const hasExplicit = agents.some(a => a.parent != null)
-  if (hasExplicit) return agents.map(a => ({ ...a, id: a.id ?? a.name }))
+  // Normalise: accept both `parent` (ZIP-parsed) and `parent_name` (DB)
+  const withId = agents.map((a, i) => ({
+    ...a,
+    id: String(a.id ?? a.name ?? i),
+    parent: a.parent ?? a.parent_name ?? null,
+  }))
 
+  const hasExplicit = withId.some(
+    a => a.parent != null && a.parent !== 'null' && a.parent !== '',
+  )
+  if (hasExplicit) return withId
+
+  // Fall back: infer from tier order (Leadership → Operations → Execution)
   const byTier = { Leadership: [], Operations: [], Execution: [] }
-  agents.forEach(a => {
+  withId.forEach(a => {
     const tier = a.tier ?? 'Execution'
-    ;(byTier[tier] ?? byTier.Execution).push(a.id ?? a.name)
+    ;(byTier[tier] ?? byTier.Execution).push(a.id)
   })
 
-  return agents.map(a => {
-    const id = a.id ?? a.name
+  return withId.map(a => {
     const tier = a.tier ?? 'Execution'
-    const idxInTier = (byTier[tier] ?? byTier.Execution).indexOf(id)
+    const idxInTier = (byTier[tier] ?? byTier.Execution).indexOf(a.id)
     let parent = null
 
     if (tier === 'Operations' && byTier.Leadership.length) {
@@ -48,7 +59,7 @@ function inferParents(agents) {
       const pool = byTier.Operations.length ? byTier.Operations : byTier.Leadership
       if (pool.length) parent = pool[idxInTier % pool.length]
     }
-    return { ...a, id, parent }
+    return { ...a, parent }
   })
 }
 
@@ -61,12 +72,24 @@ function computeLayout(agents) {
 
   const norm = inferParents(agents)
 
-  // Build adjacency
+  // Build adjacency — support lookup by id OR by name (for DB agents where parent_name is a name string)
   const byId = {}
-  norm.forEach(a => { byId[a.id] = { ...a, _kids: [] } })
+  const byName = {}
+  norm.forEach(a => {
+    byId[a.id] = { ...a, _kids: [] }
+    if (a.name) byName[a.name.toLowerCase()] = a.id
+  })
+
+  const resolveParent = (parentRef) => {
+    if (!parentRef || parentRef === 'null') return null
+    // try exact id match first, then name match
+    return byId[parentRef] ? parentRef : (byName[parentRef.toLowerCase()] ?? null)
+  }
+
   const roots = []
   norm.forEach(a => {
-    if (a.parent && byId[a.parent]) byId[a.parent]._kids.push(a.id)
+    const parentId = resolveParent(a.parent)
+    if (parentId && byId[parentId]) byId[parentId]._kids.push(a.id)
     else roots.push(a.id)
   })
 
@@ -105,8 +128,9 @@ function computeLayout(agents) {
   // Build edge list
   const edges = []
   norm.forEach(a => {
-    if (a.parent && byId[a.parent] && pos[a.id] && pos[a.parent]) {
-      edges.push({ from: a.parent, to: a.id })
+    const parentId = resolveParent(a.parent)
+    if (parentId && byId[parentId] && pos[a.id] && pos[parentId]) {
+      edges.push({ from: parentId, to: a.id })
     }
   })
 

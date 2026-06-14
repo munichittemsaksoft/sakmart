@@ -3,10 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { templateApi } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
 import { Spinner } from '@/components/ui'
+import { FileArchive, CheckCircle2, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const schema = z.object({
@@ -54,6 +55,19 @@ export default function EditTemplatePage() {
     }
   }, [template, reset])
 
+  const [zipProgress, setZipProgress] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const deleteMutation = useMutation({
+    mutationFn: () => templateApi.delete(slug),
+    onSuccess: () => {
+      toast.success('Template deleted')
+      navigate('/templates')
+    },
+    onError: () => toast.error('Delete failed'),
+  })
+  const zipInputRef = useRef(null)
+
   const mutation = useMutation({
     mutationFn: (data) => templateApi.update(slug, data),
     onSuccess: (updated) => {
@@ -63,6 +77,29 @@ export default function EditTemplatePage() {
     },
     onError: () => toast.error('Update failed'),
   })
+
+  const zipMutation = useMutation({
+    mutationFn: (file) => templateApi.uploadZip(slug, file, setZipProgress),
+    onSuccess: () => {
+      toast.success('ZIP uploaded successfully!')
+      qc.invalidateQueries(['template', slug])
+      setZipProgress(null)
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.detail || 'ZIP upload failed')
+      setZipProgress(null)
+    },
+  })
+
+  const handleZipChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+      toast.error('Please select a .zip file')
+      return
+    }
+    zipMutation.mutate(file)
+  }
 
   const onSubmit = (values) => {
     mutation.mutate({
@@ -125,6 +162,54 @@ export default function EditTemplatePage() {
           </F>
         </div>
 
+        {/* ZIP Upload */}
+        <div className="card p-6 space-y-4">
+          <h2 className="font-display font-semibold text-base text-dark-950">Template ZIP File</h2>
+          {template.zip_url ? (
+            <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+              <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-emerald-800">ZIP uploaded</p>
+                <p className="text-xs text-emerald-600 truncate">{template.zip_url}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-dark-700/50">No ZIP file uploaded yet.</p>
+          )}
+
+          <input
+            ref={zipInputRef}
+            type="file"
+            accept=".zip"
+            className="hidden"
+            onChange={handleZipChange}
+          />
+
+          {zipProgress !== null ? (
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs text-dark-700/60">
+                <span>Uploading…</span><span>{zipProgress}%</span>
+              </div>
+              <div className="w-full bg-surface-muted rounded-full h-1.5">
+                <div
+                  className="bg-primary-500 h-1.5 rounded-full transition-all"
+                  style={{ width: `${zipProgress}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => zipInputRef.current?.click()}
+              disabled={zipMutation.isPending}
+              className="btn-outline flex items-center gap-2 text-sm"
+            >
+              <FileArchive size={15} />
+              {template.zip_url ? 'Replace ZIP' : 'Upload ZIP'}
+            </button>
+          )}
+        </div>
+
         <div className="flex gap-3">
           <button type="submit" disabled={mutation.isPending} className="btn-primary flex-1 justify-center py-3">
             {mutation.isPending ? 'Saving…' : 'Save changes'}
@@ -132,6 +217,35 @@ export default function EditTemplatePage() {
           <button type="button" onClick={() => navigate(`/templates/${slug}`)} className="btn-outline px-6">
             Cancel
           </button>
+        </div>
+
+        {/* Delete section */}
+        <div className="card p-5 border-red-200">
+          <h3 className="font-semibold text-sm text-dark-950 mb-1">Danger zone</h3>
+          <p className="text-xs text-dark-700/50 mb-4">Permanently delete this template. This cannot be undone.</p>
+          {confirmDelete ? (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => deleteMutation.mutate()}
+                disabled={deleteMutation.isPending}
+                className="btn-danger flex-1 justify-center"
+              >
+                {deleteMutation.isPending ? 'Deleting…' : 'Yes, delete permanently'}
+              </button>
+              <button type="button" onClick={() => setConfirmDelete(false)} className="btn-outline px-5">
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="btn-outline border-red-300 text-red-500 hover:bg-red-50 flex items-center gap-2"
+            >
+              <Trash2 size={15} /> Delete template
+            </button>
+          )}
         </div>
       </form>
     </div>

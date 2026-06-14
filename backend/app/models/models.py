@@ -20,8 +20,8 @@ def now_utc():
 
 class UserRole(str, enum.Enum):
     user = "user"
-    creator = "creator"
     admin = "admin"
+    super_admin = "super_admin"
 
 
 class TemplateStatus(str, enum.Enum):
@@ -53,7 +53,7 @@ class User(Base):
     full_name = Column(String(200), nullable=True)
     avatar_url = Column(String, nullable=True)
     bio = Column(Text, nullable=True)
-    role = Column(SAEnum(UserRole), default=UserRole.user, nullable=False)
+    role = Column(String(50), default=UserRole.user.value, nullable=False)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), default=now_utc)
@@ -86,6 +86,8 @@ class Template(Base):
     thumbnail_url = Column(String, nullable=True)
     preview_images = Column(JSON, default=list)    # list of URLs
     config_schema = Column(JSON, default=dict)     # JSON schema for agent config
+    zip_url = Column(String, nullable=True)
+    zip_storage_key = Column(String, nullable=True)
     fork_count = Column(Integer, default=0)
     star_count = Column(Integer, default=0)
     view_count = Column(Integer, default=0)
@@ -125,7 +127,8 @@ class Agent(Base):
     schedule = Column(String(100), nullable=True)        # e.g. "every 4h"
     responsibilities = Column(JSON, default=list)
     tier = Column(SAEnum(AgentTier), default=AgentTier.execution)
-    position = Column(Integer, default=0)                # order in hierarchy
+    position = Column(Integer, default=0)
+    parent_name = Column(String(100), nullable=True)     # name/id of parent agent
 
     template = relationship("Template", back_populates="agents")
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.core.deps import get_current_user, optional_user
+from app.core.deps import get_current_user, optional_user, is_admin
 from app.models.models import User
 from app.schemas.schemas import UserOut, UserUpdate, TemplateSummary, Page
 from app.services import template_service
@@ -43,7 +43,7 @@ def user_templates(
     if not user:
         raise HTTPException(404, "User not found")
     # owners and admins see all statuses; everyone else sees only published
-    is_owner = current_user and (str(current_user.id) == str(user.id) or current_user.role == "admin")
+    is_owner = current_user and (str(current_user.id) == str(user.id) or is_admin(current_user))
     status = None if is_owner else "published"
     items, total, pages = template_service.get_templates(
         db, page=page, size=size, status=status, author_id=user.id

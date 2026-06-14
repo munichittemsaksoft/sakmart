@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from typing import Any
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 
 
 # ── Helpers ──────────────────────────────────────────────────────
@@ -67,6 +67,11 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8)
+
+
 # ── Agent ────────────────────────────────────────────────────────
 
 class AgentCreate(BaseModel):
@@ -77,6 +82,7 @@ class AgentCreate(BaseModel):
     responsibilities: list[str] = []
     tier: str = "Execution"
     position: int = 0
+    parent_name: str | None = None
 
 
 class AgentOut(OrmModel):
@@ -88,6 +94,12 @@ class AgentOut(OrmModel):
     responsibilities: list[str]
     tier: str
     position: int
+    parent_name: str | None
+
+    @field_validator("tier", mode="before")
+    @classmethod
+    def coerce_tier(cls, v):
+        return v.value if hasattr(v, "value") else str(v)
 
 
 # ── Template ─────────────────────────────────────────────────────
@@ -135,6 +147,7 @@ class TemplateOut(OrmModel):
     monthly_revenue_max: int | None
     thumbnail_url: str | None
     preview_images: list[str]
+    zip_url: str | None
     fork_count: int
     star_count: int
     view_count: int
@@ -157,6 +170,7 @@ class TemplateSummary(OrmModel):
     monthly_revenue_min: int | None
     monthly_revenue_max: int | None
     thumbnail_url: str | None
+    zip_url: str | None
     fork_count: int
     star_count: int
     view_count: int

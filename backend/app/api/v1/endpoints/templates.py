@@ -1,10 +1,11 @@
 from __future__ import annotations
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.core.deps import get_current_user, optional_user
+from app.core.deps import get_current_user, optional_user, is_admin
 from app.models.models import User, Template
 from app.schemas.schemas import (
     TemplateCreate, TemplateUpdate, TemplateOut, TemplateSummary,
@@ -63,7 +64,7 @@ def update_template(
     user: User = Depends(get_current_user),
 ):
     t = _get_or_404(db, slug)
-    if str(t.author_id) != str(user.id) and user.role != "admin":
+    if str(t.author_id) != str(user.id) and not is_admin(user):
         raise HTTPException(403, "Not allowed")
     return template_service.update_template(db, t, data)
 
@@ -75,7 +76,7 @@ def delete_template(
     user: User = Depends(get_current_user),
 ):
     t = _get_or_404(db, slug)
-    if str(t.author_id) != str(user.id) and user.role != "admin":
+    if str(t.author_id) != str(user.id) and not is_admin(user):
         raise HTTPException(403, "Not allowed")
     template_service.delete_template(db, t)
 
@@ -119,6 +120,44 @@ def add_review(
     return template_service.add_review(db, t, user.id, data)
 
 
+@router.post("/{slug}/zip", response_model=TemplateOut, status_code=200)
+async def upload_zip(
+    slug: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    t = _get_or_404(db, slug)
+    if str(t.author_id) != str(user.id) and not is_admin(user):
+        raise HTTPException(403, "Not allowed")
+    if not file.filename.lower().endswith(".zip"):
+        raise HTTPException(400, "Only .zip files are accepted")
+
+    # Delete previous ZIP if it exists
+    if t.zip_storage_key:
+        try:
+            await storage().delete(t.zip_storage_key)
+        except Exception:
+            pass
+
+    content = await file.read()
+    key, url = await storage().upload(content, file.filename, "application/zip")
+    t.zip_storage_key = key
+    t.zip_url = url
+    db.commit()
+    db.refresh(t)
+    return t
+
+
+@router.get("/{slug}/download")
+def download_zip(slug: str, db: Session = Depends(get_db)):
+    t = _get_or_404(db, slug)
+    if not t.zip_storage_key:
+        raise HTTPException(404, "No ZIP file available for this template")
+    url = storage().download_url(t.zip_storage_key, filename=f"{t.slug}.zip")
+    return RedirectResponse(url=url, status_code=302)
+
+
 @router.post("/{slug}/assets", response_model=AssetOut, status_code=201)
 async def upload_asset(
     slug: str,
@@ -127,7 +166,7 @@ async def upload_asset(
     user: User = Depends(get_current_user),
 ):
     t = _get_or_404(db, slug)
-    if str(t.author_id) != str(user.id) and user.role != "admin":
+    if str(t.author_id) != str(user.id) and not is_admin(user):
         raise HTTPException(403, "Not allowed")
     content = await file.read()
     key, url = await storage().upload(content, file.filename, file.content_type)

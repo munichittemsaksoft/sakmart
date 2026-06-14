@@ -8,6 +8,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 
 from app.core.config import settings
 from app.api.v1.router import api_router
@@ -21,9 +22,22 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting ClipMart API [%s]", settings.app_env)
-    # Create DB tables (use Alembic in production)
-    if settings.app_env == "development":
-        Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    # Add new columns to existing tables without Alembic
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE templates ADD COLUMN IF NOT EXISTS zip_url VARCHAR"))
+        conn.execute(text("ALTER TABLE templates ADD COLUMN IF NOT EXISTS zip_storage_key VARCHAR"))
+        conn.execute(text("ALTER TABLE agents ADD COLUMN IF NOT EXISTS parent_name VARCHAR(100)"))
+        # Convert role column from PostgreSQL enum to VARCHAR so we can add roles without DDL migrations
+        conn.execute(text("""
+            DO $$ BEGIN
+                ALTER TABLE users ALTER COLUMN role TYPE VARCHAR(50) USING role::text;
+            EXCEPTION WHEN others THEN NULL;
+            END $$
+        """))
+        # Rename legacy 'creator' role to 'user'
+        conn.execute(text("UPDATE users SET role = 'user' WHERE role = 'creator'"))
+        conn.commit()
     # Ensure local upload dir exists
     if settings.storage_backend == "local":
         Path(settings.local_upload_dir).mkdir(parents=True, exist_ok=True)

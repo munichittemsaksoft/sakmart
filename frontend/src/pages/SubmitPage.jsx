@@ -955,6 +955,7 @@ export default function SubmitPage() {
     const agents = (values.agents || []).map((a, i) => ({
       ...a, position: i,
       responsibilities: a.responsibilities ? a.responsibilities.split('\n').filter(Boolean) : [],
+      parent_name: graphAgents?.find(g => g.name === a.name)?.parent || null,
     }))
     mutation.mutate({
       ...values,

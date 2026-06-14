@@ -1,11 +1,13 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { GitFork, Star, Eye, Users, ArrowLeft, Layers } from 'lucide-react'
+import { GitFork, Star, Eye, ArrowLeft, Layers, Download, Trash2, LayoutList, GitBranch } from 'lucide-react'
 import { templateApi } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
 import { Spinner } from '@/components/ui'
+import AgentGraph from '@/components/templates/AgentGraph'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
+import { useState } from 'react'
 
 function AgentTier({ label, agents, color }) {
   if (!agents.length) return null
@@ -46,6 +48,9 @@ export default function TemplateDetailPage() {
   const { slug } = useParams()
   const { user } = useAuthStore()
   const qc = useQueryClient()
+  const navigate = useNavigate()
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [agentView, setAgentView] = useState('graph')
 
   const { data: template, isLoading } = useQuery({
     queryKey: ['template', slug],
@@ -69,12 +74,22 @@ export default function TemplateDetailPage() {
     },
   })
 
+  const deleteMutation = useMutation({
+    mutationFn: () => templateApi.delete(slug),
+    onSuccess: () => {
+      toast.success('Template deleted')
+      navigate('/templates')
+    },
+    onError: () => toast.error('Delete failed'),
+  })
+
   if (isLoading) return <div className="flex justify-center py-32"><Spinner size={28} /></div>
   if (!template) return <div className="text-center py-32 text-dark-700/50">Template not found</div>
 
-  const leadership = template.agents.filter((a) => a.tier === 'Leadership')
-  const operations  = template.agents.filter((a) => a.tier === 'Operations')
-  const execution   = template.agents.filter((a) => a.tier === 'Execution')
+  const byTier = (t) => template.agents.filter((a) => (a.tier || '').toLowerCase() === t)
+  const leadership = byTier('leadership')
+  const operations  = byTier('operations')
+  const execution   = byTier('execution')
 
   const fmt = (cents) => cents ? `$${(cents / 100).toLocaleString()}` : '—'
 
@@ -117,13 +132,46 @@ export default function TemplateDetailPage() {
           {/* Agent hierarchy */}
           {template.agents.length > 0 && (
             <div className="card p-6">
-              <h2 className="font-display font-semibold text-lg mb-4 flex items-center gap-2">
-                <Layers size={18} className="text-primary-500" />
-                Agent Hierarchy
-              </h2>
-              <AgentTier label="Leadership" agents={leadership} color="text-violet-600" />
-              <AgentTier label="Operations" agents={operations} color="text-primary-600" />
-              <AgentTier label="Execution"  agents={execution}  color="text-accent-600" />
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display font-semibold text-lg flex items-center gap-2">
+                  <Layers size={18} className="text-primary-500" />
+                  Agent Hierarchy
+                </h2>
+                <div className="flex items-center gap-1 bg-surface-soft rounded-lg p-1">
+                  <button
+                    onClick={() => setAgentView('list')}
+                    className={clsx(
+                      'flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md transition-all',
+                      agentView === 'list'
+                        ? 'bg-white text-dark-950 shadow-sm'
+                        : 'text-dark-700/50 hover:text-dark-700',
+                    )}
+                  >
+                    <LayoutList size={13} /> List
+                  </button>
+                  <button
+                    onClick={() => setAgentView('graph')}
+                    className={clsx(
+                      'flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md transition-all',
+                      agentView === 'graph'
+                        ? 'bg-white text-dark-950 shadow-sm'
+                        : 'text-dark-700/50 hover:text-dark-700',
+                    )}
+                  >
+                    <GitBranch size={13} /> Graph
+                  </button>
+                </div>
+              </div>
+
+              {agentView === 'list' ? (
+                <>
+                  <AgentTier label="Leadership" agents={leadership} color="text-violet-600" />
+                  <AgentTier label="Operations" agents={operations} color="text-primary-600" />
+                  <AgentTier label="Execution"  agents={execution}  color="text-accent-600" />
+                </>
+              ) : (
+                <AgentGraph agents={template.agents} />
+              )}
             </div>
           )}
         </div>
@@ -194,7 +242,57 @@ export default function TemplateDetailPage() {
                 Log in to fork
               </Link>
             )}
+
+            {/* Download — always visible */}
+            <div className="pt-2 border-t border-surface-border mt-2">
+              {template.zip_url ? (
+                <a
+                  href={templateApi.downloadUrl(template.slug)}
+                  download
+                  className="btn-ghost w-full justify-center flex items-center gap-2 text-sm"
+                >
+                  <Download size={15} /> Download ZIP
+                </a>
+              ) : (
+                <div className="flex items-center justify-center gap-2 text-sm text-dark-700/40 py-2">
+                  <Download size={15} /> No ZIP available
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Delete — owner / admin only */}
+          {user && (String(template.author?.id) === String(user.id) || ['admin', 'super_admin'].includes(user.role)) && (
+            <div className="card p-4">
+              {confirmDelete ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-dark-700/80">Delete this template permanently?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => deleteMutation.mutate()}
+                      disabled={deleteMutation.isPending}
+                      className="btn-danger flex-1 justify-center text-sm py-2"
+                    >
+                      {deleteMutation.isPending ? 'Deleting…' : 'Yes, delete'}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDelete(false)}
+                      className="btn-outline flex-1 justify-center text-sm py-2"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="flex items-center gap-2 text-sm text-red-500 hover:text-red-600 w-full justify-center py-1"
+                >
+                  <Trash2 size={14} /> Delete template
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Author */}
           <div className="card p-4 flex items-center gap-3">

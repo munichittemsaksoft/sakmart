@@ -9,6 +9,8 @@ from app.models.models import User, UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
+ADMIN_ROLES = {UserRole.admin.value, UserRole.super_admin.value}
+
 
 def get_current_user(
     token: str = Depends(oauth2_scheme),
@@ -35,9 +37,22 @@ def get_current_user(
     return user
 
 
+def is_admin(user: User) -> bool:
+    """True for admin and super_admin."""
+    return user.role in ADMIN_ROLES
+
+
 def require_admin(user: User = Depends(get_current_user)) -> User:
-    if user.role != UserRole.admin:
+    """Allows admin and super_admin."""
+    if not is_admin(user):
         raise HTTPException(status_code=403, detail="Admin access required")
+    return user
+
+
+def require_super_admin(user: User = Depends(get_current_user)) -> User:
+    """Allows only super_admin."""
+    if user.role != UserRole.super_admin.value:
+        raise HTTPException(status_code=403, detail="Super admin access required")
     return user
 
 

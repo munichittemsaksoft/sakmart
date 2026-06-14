@@ -7,10 +7,13 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-// Attach access token
+// Attach access token + clear Content-Type for FormData so browser sets the multipart boundary
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+  }
   return config
 })
 
@@ -45,6 +48,7 @@ export const authApi = {
   register: (data) => api.post('/auth/register', data).then(r => r.data),
   login: (data) => api.post('/auth/login', data).then(r => r.data),
   me: () => api.get('/auth/me').then(r => r.data),
+  changePassword: (data) => api.post('/auth/change-password', data),
 }
 
 // ── Templates ────────────────────────────────────────────────
@@ -61,10 +65,16 @@ export const templateApi = {
   uploadAsset: (slug, file) => {
     const form = new FormData()
     form.append('file', file)
-    return api.post(`/templates/${slug}/assets`, form, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+    return api.post(`/templates/${slug}/assets`, form).then(r => r.data)
+  },
+  uploadZip: (slug, file, onProgress) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post(`/templates/${slug}/zip`, form, {
+      onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / e.total)),
     }).then(r => r.data)
   },
+  downloadUrl: (slug) => `${BASE_URL}/templates/${slug}/download`,
 }
 
 // ── Users ────────────────────────────────────────────────────
@@ -79,6 +89,6 @@ export const analyzeApi = {
   template: (zipFile) => {
     const form = new FormData()
     form.append('file', zipFile)
-    return api.post('/analyze', form, { headers: { 'Content-Type': 'multipart/form-data' } }).then(r => r.data)
+    return api.post('/analyze', form).then(r => r.data)
   },
 }

@@ -47,7 +47,7 @@ const router = createBrowserRouter([
       { path: 'register',              element: <RegisterPage /> },
       { path: 'submit',                element: <SubmitPage /> },
       { path: 'dashboard',             element: <DashboardPage /> },
-      { path: 'u/:username',           element: <ProfilePage /> },
+      { path: 'profile',                element: <ProfilePage /> },
       { path: 'admin',                 element: <AdminPage /> },
       { path: '*',                     element: <NotFoundPage /> },
     ],
