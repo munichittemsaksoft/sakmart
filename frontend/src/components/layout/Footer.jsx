@@ -8,7 +8,7 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
               <img src="/saksoft-logo.png" alt="Saksoft" className="w-7 h-7 object-contain" />
-              <span className="font-display font-bold text-white">SAKmart</span>
+              <span className="font-display font-bold text-white">SAKAgentMart</span>
             </div>
             <p className="text-sm leading-relaxed">
               The template directory for agentic companies. Fork a running AI business.
@@ -39,7 +39,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs">
-          <span>© {new Date().getFullYear()} SAKmart. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} SAKAgentMart. All rights reserved.</span>
           <span>Powered by <span className="text-accent-400 font-semibold">Saksoft</span></span>
         </div>
       </div>

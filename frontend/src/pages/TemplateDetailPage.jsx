@@ -2,10 +2,11 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   GitFork, Star, Eye, ArrowLeft, Layers, Download, Trash2,
-  LayoutList, GitBranch, ShoppingCart, CheckCircle2, Lock,
+  LayoutList, GitBranch, ShoppingCart, CheckCircle2, Lock, Check,
 } from 'lucide-react'
 import { templateApi, purchaseApi } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
+import { useCartStore } from '@/store/cartStore'
 import { Spinner } from '@/components/ui'
 import AgentGraph from '@/components/templates/AgentGraph'
 import toast from 'react-hot-toast'
@@ -50,6 +51,7 @@ function AgentTier({ label, agents, color }) {
 export default function TemplateDetailPage() {
   const { slug } = useParams()
   const { user } = useAuthStore()
+  const { addItem, hasItem } = useCartStore()
   const qc = useQueryClient()
   const navigate = useNavigate()
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -266,16 +268,27 @@ export default function TemplateDetailPage() {
             {/* Actions */}
             {user ? (
               <div className="space-y-2">
-                {/* Buy Now — paid + not yet purchased */}
-                {isPaid && !hasAccess && (
-                  <button
-                    onClick={() => navigate(`/checkout/${slug}`)}
-                    className="btn-primary w-full justify-center py-3 bg-emerald-600 hover:bg-emerald-700"
-                  >
-                    <ShoppingCart size={16} />
-                    Buy Now · {fmtPrice(template.price)}
-                  </button>
-                )}
+                {/* Buy / Cart — paid + not yet purchased */}
+                {isPaid && !hasAccess && (() => {
+                  const inCart = hasItem(template.id)
+                  return (
+                    <>
+                      <button
+                        onClick={() => navigate(`/checkout/${slug}`)}
+                        className="btn-primary w-full justify-center py-3 bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        <ShoppingCart size={16} />
+                        Buy Now · {fmtPrice(template.price)}
+                      </button>
+                      <button
+                        onClick={() => addItem({ id: template.id, type: 'template', slug, name: template.title, price: template.price })}
+                        className={`btn-outline w-full justify-center py-2.5 gap-2 ${inCart ? 'border-emerald-400 text-emerald-600 bg-emerald-50' : ''}`}
+                      >
+                        {inCart ? <><Check size={15} /> Added to cart</> : <><ShoppingCart size={15} /> Add to cart</>}
+                      </button>
+                    </>
+                  )
+                })()}
 
                 {/* Fork — available to everyone with access */}
                 {hasAccess && (

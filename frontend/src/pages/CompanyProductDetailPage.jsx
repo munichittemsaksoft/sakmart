@@ -2,10 +2,11 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft, Building2, ShoppingCart, CheckCircle2, Tag,
-  Users, Download, Bot, ChevronRight, Target, Heart,
+  Users, Download, Bot, ChevronRight, Target, Heart, Check,
 } from 'lucide-react'
 import { companyApi } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
+import { useCartStore } from '@/store/cartStore'
 import { Spinner } from '@/components/ui'
 import clsx from 'clsx'
 
@@ -23,6 +24,7 @@ export default function CompanyProductDetailPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const { user } = useAuthStore()
+  const { addItem, hasItem } = useCartStore()
 
   const { data: company, isLoading } = useQuery({
     queryKey: ['company', slug],
@@ -197,14 +199,25 @@ export default function CompanyProductDetailPage() {
                   <p className="text-3xl font-display font-bold text-dark-950">{formatPrice(company.price)}</p>
                   <p className="text-xs text-dark-700/50 mt-0.5">One-time purchase</p>
                 </div>
-                {user ? (
-                  <button
-                    onClick={() => navigate(`/companies/checkout/${slug}`)}
-                    className="btn-primary w-full justify-center py-3 gap-2"
-                  >
-                    <ShoppingCart size={16} /> Buy Now · {formatPrice(company.price)}
-                  </button>
-                ) : (
+                {user ? (() => {
+                  const inCart = hasItem(company.id)
+                  return (
+                    <>
+                      <button
+                        onClick={() => navigate(`/companies/checkout/${slug}`)}
+                        className="btn-primary w-full justify-center py-3 gap-2"
+                      >
+                        <ShoppingCart size={16} /> Buy Now · {formatPrice(company.price)}
+                      </button>
+                      <button
+                        onClick={() => addItem({ id: company.id, type: 'company', slug, name: company.name, price: company.price })}
+                        className={`btn-outline w-full justify-center py-2.5 gap-2 mt-2 ${inCart ? 'border-blue-400 text-blue-600 bg-blue-50' : ''}`}
+                      >
+                        {inCart ? <><Check size={15} /> Added to cart</> : <><ShoppingCart size={15} /> Add to cart</>}
+                      </button>
+                    </>
+                  )
+                })() : (
                   <Link to="/login" className="btn-primary w-full justify-center py-3 block text-center">
                     Log in to purchase
                   </Link>

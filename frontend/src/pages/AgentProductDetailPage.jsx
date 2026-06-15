@@ -1,8 +1,9 @@
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Bot, ShoppingCart, CheckCircle2, Tag, User, Cpu, Layers } from 'lucide-react'
+import { ArrowLeft, Bot, ShoppingCart, CheckCircle2, Tag, User, Cpu, Layers, Check } from 'lucide-react'
 import { agentProductApi } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
+import { useCartStore } from '@/store/cartStore'
 import { Spinner } from '@/components/ui'
 import clsx from 'clsx'
 
@@ -20,6 +21,7 @@ export default function AgentProductDetailPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const { user } = useAuthStore()
+  const { addItem, hasItem } = useCartStore()
 
   const { data: agent, isLoading } = useQuery({
     queryKey: ['agent', slug],
@@ -152,14 +154,25 @@ export default function AgentProductDetailPage() {
                   <p className="text-3xl font-display font-bold text-dark-950">{formatPrice(agent.price)}</p>
                   <p className="text-xs text-dark-700/50 mt-0.5">One-time purchase</p>
                 </div>
-                {user ? (
-                  <button
-                    onClick={() => navigate(`/agents/checkout/${slug}`)}
-                    className="btn-primary w-full justify-center py-3 gap-2"
-                  >
-                    <ShoppingCart size={16} /> Buy Now · {formatPrice(agent.price)}
-                  </button>
-                ) : (
+                {user ? (() => {
+                  const inCart = hasItem(agent.id)
+                  return (
+                    <>
+                      <button
+                        onClick={() => navigate(`/agents/checkout/${slug}`)}
+                        className="btn-primary w-full justify-center py-3 gap-2"
+                      >
+                        <ShoppingCart size={16} /> Buy Now · {formatPrice(agent.price)}
+                      </button>
+                      <button
+                        onClick={() => addItem({ id: agent.id, type: 'agent', slug, name: agent.name, price: agent.price })}
+                        className={`btn-outline w-full justify-center py-2.5 gap-2 mt-2 ${inCart ? 'border-violet-400 text-violet-600 bg-violet-50' : ''}`}
+                      >
+                        {inCart ? <><Check size={15} /> Added to cart</> : <><ShoppingCart size={15} /> Add to cart</>}
+                      </button>
+                    </>
+                  )
+                })() : (
                   <Link to="/login" className="btn-primary w-full justify-center py-3 block text-center">
                     Log in to purchase
                   </Link>

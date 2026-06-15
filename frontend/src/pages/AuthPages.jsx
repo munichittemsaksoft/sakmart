@@ -30,7 +30,7 @@ export function LoginPage() {
   }
 
   return (
-    <AuthLayout title="Log in to SAKmart" sub="Don't have an account?" subLink={<Link to="/register" className="text-primary-500 font-medium">Sign up</Link>}>
+    <AuthLayout title="Log in to SAKAgentMart" sub="Don't have an account?" subLink={<Link to="/register" className="text-primary-500 font-medium">Sign up</Link>}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-6">
         <Field label="Email" error={errors.email}>
           <input {...register('email')} type="email" className="input" placeholder="you@example.com" />

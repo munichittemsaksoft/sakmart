@@ -591,7 +591,7 @@ async function downloadSampleZip() {
   zip.file('template.paperclip.yaml', yamlDump(SAMPLE_PAPERCLIP, { lineWidth: 120, quotingType: '"' }))
   zip.file('COMPANY.md', SAMPLE_COMPANY_MD)
   zip.file('README.md', '# Lead Gen Machine\n\nSee COMPANY.md for the full description.')
-  zip.file('LICENSE', 'MIT License\n\nCopyright (c) 2025 SAKmart')
+  zip.file('LICENSE', 'MIT License\n\nCopyright (c) 2025 SAKAgentMart')
   const agents = zip.folder('agents')
   Object.entries(SAMPLE_AGENT_INSTRUCTIONS).forEach(([id, t]) => agents.file(`${id}.md`, t))
   const skills = zip.folder('skills')

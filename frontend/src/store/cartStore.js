@@ -30,7 +30,7 @@ export const useCartStore = create(
       total: () => get().items.reduce((sum, i) => sum + (i.price || 0), 0),
     }),
     {
-      name: 'sakmart-cart',
+      name: 'sakagentmart-cart',
       partialize: (s) => ({ items: s.items }),  // don't persist isOpen
     }
   )

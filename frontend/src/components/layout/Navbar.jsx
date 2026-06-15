@@ -47,7 +47,7 @@ export default function Navbar() {
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
             <img src="/saksoft-logo.png" alt="Saksoft" className="w-8 h-8 object-contain" />
             <span className="font-display font-bold text-lg text-dark-950 tracking-tight">
-              SAK<span className="text-primary-500">mart</span>
+              SAK<span className="text-primary-500">AgentMart</span>
             </span>
           </Link>
 
