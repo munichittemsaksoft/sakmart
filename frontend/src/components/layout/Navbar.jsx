@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Menu, X, ChevronDown, User, LogOut, Plus, ExternalLink, BookOpen, Shield, ShoppingBag, Bot, Building2, ShoppingCart } from 'lucide-react'
+import { Menu, X, ChevronDown, User, LogOut, Plus, ExternalLink, BookOpen, Shield, ShoppingBag, Bot, Puzzle, ShoppingCart } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useCartStore } from '@/store/cartStore'
 
@@ -57,8 +57,8 @@ export default function Navbar() {
             <Link to="/agents" className="nav-link flex items-center gap-1">
               <Bot size={13} className="text-violet-500" /> Agents
             </Link>
-            <Link to="/companies" className="nav-link flex items-center gap-1">
-              <Building2 size={13} className="text-blue-500" /> Companies
+            <Link to="/skills" className="nav-link flex items-center gap-1">
+              <Puzzle size={13} className="text-amber-500" /> Skills
             </Link>
 
             {/* Docs dropdown */}
@@ -197,9 +197,9 @@ export default function Navbar() {
             className="flex items-center gap-1.5 py-2 text-sm font-medium text-dark-800 hover:text-violet-500">
             <Bot size={14} className="text-violet-500" /> Agents
           </Link>
-          <Link to="/companies" onClick={() => setOpen(false)}
-            className="flex items-center gap-1.5 py-2 text-sm font-medium text-dark-800 hover:text-blue-500">
-            <Building2 size={14} className="text-blue-500" /> Companies
+          <Link to="/skills" onClick={() => setOpen(false)}
+            className="flex items-center gap-1.5 py-2 text-sm font-medium text-dark-800 hover:text-amber-500">
+            <Puzzle size={14} className="text-amber-500" /> Skills
           </Link>
           <Link to="/submit" onClick={() => setOpen(false)}
             className="block py-2 text-sm font-medium text-dark-800 hover:text-primary-500">Submit Template</Link>

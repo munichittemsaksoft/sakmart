@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X, ShoppingCart, Trash2, Bot, Layers, ArrowRight, ShoppingBag } from 'lucide-react'
+import { X, ShoppingCart, Trash2, Bot, Layers, Puzzle, ArrowRight, ShoppingBag } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 
 function formatPrice(cents) {
@@ -81,13 +81,13 @@ export default function CartDrawer() {
               <div key={item.id} className="flex items-center gap-3 p-3 bg-surface-muted rounded-xl group">
                 {/* Icon */}
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                  item.type === 'agent'
-                    ? 'bg-violet-50'
-                    : 'bg-primary-50'
+                  item.type === 'agent' ? 'bg-violet-50' : item.type === 'skill' ? 'bg-amber-50' : 'bg-primary-50'
                 }`}>
                   {item.type === 'agent'
                     ? <Bot size={18} className="text-violet-600" />
-                    : <Layers size={18} className="text-primary-600" />
+                    : item.type === 'skill'
+                      ? <Puzzle size={18} className="text-amber-600" />
+                      : <Layers size={18} className="text-primary-600" />
                   }
                 </div>
 

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ShoppingBag, Download, ArrowRight, Bot, Building2, Layers } from 'lucide-react'
-import { purchaseApi, agentProductApi, companyApi } from '@/utils/api'
+import { ShoppingBag, Download, ArrowRight, Bot, Puzzle, Layers } from 'lucide-react'
+import { purchaseApi, agentProductApi, skillApi } from '@/utils/api'
 import { Spinner } from '@/components/ui'
 
 function formatPrice(cents) {
@@ -16,7 +16,7 @@ function formatDate(iso) {
 const TABS = [
   { key: 'templates', label: 'Templates', Icon: Layers },
   { key: 'agents',    label: 'Agents',    Icon: Bot },
-  { key: 'companies', label: 'Companies', Icon: Building2 },
+  { key: 'skills',    label: 'Skills',    Icon: Puzzle },
 ]
 
 function EmptyState({ label, to }) {
@@ -126,32 +126,30 @@ function AgentPurchases() {
   )
 }
 
-function CompanyPurchases() {
+function SkillPurchases() {
   const { data: purchases = [], isLoading } = useQuery({
-    queryKey: ['company-purchases', 'me'],
-    queryFn: companyApi.mine,
+    queryKey: ['skill-purchases', 'me'],
+    queryFn: skillApi.mine,
   })
   if (isLoading) return <div className="flex justify-center py-20"><Spinner size={28} /></div>
-  if (purchases.length === 0) return <EmptyState label="companies" to="/companies" />
+  if (purchases.length === 0) return <EmptyState label="skills" to="/skills" />
   return (
     <div className="space-y-3">
       {purchases.map((p) => {
-        const c = p.company_product
+        const s = p.skill
         return (
           <div key={p.id} className="card p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-              <Building2 size={22} className="text-blue-600" />
+            <div className="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+              <Puzzle size={22} className="text-amber-600" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                <Link to={`/companies/${c.slug}`} className="font-semibold text-dark-950 hover:text-primary-500 transition-colors truncate">
-                  {c.name}
+                <Link to={`/skills/${s.slug}`} className="font-semibold text-dark-950 hover:text-primary-500 transition-colors truncate">
+                  {s.name}
                 </Link>
                 <span className="badge badge-green text-xs shrink-0">Owned</span>
               </div>
-              <p className="text-xs text-dark-700/50">
-                {c.industry || 'General'} · {c.agent_count} agent{c.agent_count !== 1 ? 's' : ''}
-              </p>
+              <p className="text-xs text-dark-700/50">{s.category || 'General'}</p>
               <p className="text-xs text-dark-700/40 mt-0.5">
                 {formatDate(p.purchased_at)} · <span className="font-mono">{p.payment_ref}</span>
               </p>
@@ -160,17 +158,9 @@ function CompanyPurchases() {
               <p className="font-display font-bold text-dark-950">{formatPrice(p.amount_paid)}</p>
               <p className="text-xs text-emerald-600 capitalize">{p.status}</p>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {c.zip_url && (
-                <a href={`/api/v1/companies/${c.slug}/download`}
-                  className="btn-outline text-xs px-3 py-1.5 flex items-center gap-1" title="Download ZIP">
-                  <Download size={13} />
-                </a>
-              )}
-              <Link to={`/companies/${c.slug}`} className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1">
-                View <ArrowRight size={13} />
-              </Link>
-            </div>
+            <Link to={`/skills/${s.slug}`} className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1 shrink-0">
+              View <ArrowRight size={13} />
+            </Link>
           </div>
         )
       })}
@@ -208,7 +198,7 @@ export default function PurchasesPage() {
 
       {tab === 'templates' && <TemplatePurchases />}
       {tab === 'agents'    && <AgentPurchases />}
-      {tab === 'companies' && <CompanyPurchases />}
+      {tab === 'skills'    && <SkillPurchases />}
     </div>
   )
 }

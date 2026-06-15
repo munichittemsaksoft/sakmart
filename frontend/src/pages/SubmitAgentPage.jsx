@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation } from '@tanstack/react-query'
-import { Plus, Trash2, Bot } from 'lucide-react'
-import { agentProductApi } from '@/utils/api'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { Plus, Trash2, Bot, Puzzle, Check, Search } from 'lucide-react'
+import { agentProductApi, skillApi } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 
@@ -37,9 +37,82 @@ function F({ label, error, children }) {
   )
 }
 
+function SkillsPicker({ selected, onChange }) {
+  const [q, setQ] = useState('')
+
+  const { data: skills = [], isLoading, isError } = useQuery({
+    queryKey: ['skills', 'picker'],
+    queryFn: () => skillApi.list({ limit: 100 }),
+    retry: 0,
+  })
+
+  const filtered = skills.filter(s =>
+    !q || s.name.toLowerCase().includes(q.toLowerCase()) || s.category?.toLowerCase().includes(q.toLowerCase())
+  )
+
+  const toggle = (skill) => {
+    const already = selected.some(s => s.id === skill.id)
+    onChange(already ? selected.filter(s => s.id !== skill.id) : [...selected, skill])
+  }
+
+  if (isError) return (
+    <p className="text-xs text-dark-700/40 py-2">
+      Skills marketplace not yet available — check back after the backend is deployed.
+    </p>
+  )
+
+  return (
+    <div className="space-y-3">
+      <div className="relative">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-700/40" />
+        <input
+          value={q}
+          onChange={e => setQ(e.target.value)}
+          className="input pl-8 text-sm"
+          placeholder="Search skills…"
+        />
+      </div>
+
+      {isLoading ? (
+        <p className="text-xs text-dark-700/40">Loading skills…</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-xs text-dark-700/40">{q ? 'No skills match.' : 'No skills in marketplace yet.'}</p>
+      ) : (
+        <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
+          {filtered.map(skill => {
+            const active = selected.some(s => s.id === skill.id)
+            return (
+              <button
+                key={skill.id}
+                type="button"
+                onClick={() => toggle(skill)}
+                className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all ${
+                  active
+                    ? 'bg-amber-100 text-amber-800 border-amber-400'
+                    : 'bg-surface-muted text-dark-700/70 border-surface-border hover:border-amber-300 hover:text-amber-700'
+                }`}
+              >
+                {active && <Check size={11} />}
+                <Puzzle size={11} className={active ? 'text-amber-600' : 'text-dark-700/40'} />
+                {skill.name}
+                {skill.category && <span className="text-dark-700/40">· {skill.category}</span>}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {selected.length > 0 && (
+        <p className="text-xs text-amber-700 font-medium">{selected.length} skill{selected.length !== 1 ? 's' : ''} attached</p>
+      )}
+    </div>
+  )
+}
+
 export default function SubmitAgentPage() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
+  const [selectedSkills, setSelectedSkills] = useState([])
 
   const { register, handleSubmit, control, formState: { errors } } = useForm({
     resolver: zodResolver(schema),
@@ -85,6 +158,7 @@ export default function SubmitAgentPage() {
       tags: values.tags ? values.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
       price: values.price ? Math.round(values.price * 100) : null,
       status: values.status,
+      skill_slugs: selectedSkills.map(s => s.slug),
     })
   }
 
@@ -191,6 +265,16 @@ export default function SubmitAgentPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Skills */}
+        <div className="card p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Puzzle size={16} className="text-amber-500" />
+            <h2 className="font-display font-semibold text-base text-dark-950">Attach Skills</h2>
+          </div>
+          <p className="text-xs text-dark-700/50 mb-4">Select skills from the marketplace that this agent uses</p>
+          <SkillsPicker selected={selectedSkills} onChange={setSelectedSkills} />
         </div>
 
         <button

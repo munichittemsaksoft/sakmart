@@ -7,7 +7,7 @@ import uuid
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, or_
 
-from app.models.models import Template, Agent, Fork, Star, Review, Asset, TemplateStatus
+from app.models.models import Template, Agent, Fork, Star, Review, Asset, TemplateStatus, AgentProduct, Skill
 from app.schemas.schemas import TemplateCreate, TemplateUpdate, ForkCreate, ReviewCreate
 from slugify import slugify
 
@@ -70,7 +70,12 @@ def get_templates(
 def get_template(db: Session, slug: str) -> Template | None:
     t = (
         db.query(Template)
-        .options(joinedload(Template.author), joinedload(Template.agents))
+        .options(
+            joinedload(Template.author),
+            joinedload(Template.agents),
+            joinedload(Template.marketplace_agents).joinedload(AgentProduct.author),
+            joinedload(Template.marketplace_skills).joinedload(Skill.author),
+        )
         .filter(Template.slug == slug)
         .first()
     )
@@ -83,7 +88,9 @@ def get_template(db: Session, slug: str) -> Template | None:
 def create_template(db: Session, data: TemplateCreate, author_id: uuid.UUID) -> Template:
     slug = _unique_slug(db, data.title)
     agents_data = data.agents
-    template_data = data.model_dump(exclude={"agents"})
+    agent_slugs = data.agent_slugs
+    skill_slugs = data.skill_slugs
+    template_data = data.model_dump(exclude={"agents", "agent_slugs", "skill_slugs"})
 
     t = Template(**template_data, slug=slug, author_id=author_id, status=TemplateStatus.published)
     db.add(t)
@@ -93,17 +100,50 @@ def create_template(db: Session, data: TemplateCreate, author_id: uuid.UUID) -> 
         agent = Agent(**a.model_dump(exclude={"position"}), template_id=t.id, position=a.position or i)
         db.add(agent)
 
+    if agent_slugs:
+        t.marketplace_agents = db.query(AgentProduct).filter(AgentProduct.slug.in_(agent_slugs)).all()
+    if skill_slugs:
+        t.marketplace_skills = db.query(Skill).filter(Skill.slug.in_(skill_slugs)).all()
+
     db.commit()
-    db.refresh(t)
-    return t
+    return (
+        db.query(Template)
+        .options(
+            joinedload(Template.author),
+            joinedload(Template.agents),
+            joinedload(Template.marketplace_agents).joinedload(AgentProduct.author),
+            joinedload(Template.marketplace_skills).joinedload(Skill.author),
+        )
+        .filter(Template.id == t.id)
+        .one()
+    )
 
 
 def update_template(db: Session, template: Template, data: TemplateUpdate) -> Template:
-    for field, value in data.model_dump(exclude_none=True).items():
+    update_data = data.model_dump(exclude_none=True)
+    agent_slugs = update_data.pop("agent_slugs", None)
+    skill_slugs = update_data.pop("skill_slugs", None)
+
+    for field, value in update_data.items():
         setattr(template, field, value)
+
+    if agent_slugs is not None:
+        template.marketplace_agents = db.query(AgentProduct).filter(AgentProduct.slug.in_(agent_slugs)).all()
+    if skill_slugs is not None:
+        template.marketplace_skills = db.query(Skill).filter(Skill.slug.in_(skill_slugs)).all()
+
     db.commit()
-    db.refresh(template)
-    return template
+    return (
+        db.query(Template)
+        .options(
+            joinedload(Template.author),
+            joinedload(Template.agents),
+            joinedload(Template.marketplace_agents).joinedload(AgentProduct.author),
+            joinedload(Template.marketplace_skills).joinedload(Skill.author),
+        )
+        .filter(Template.id == template.id)
+        .one()
+    )
 
 
 def delete_template(db: Session, template: Template) -> None:

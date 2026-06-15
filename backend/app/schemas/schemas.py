@@ -117,6 +117,8 @@ class TemplateCreate(BaseModel):
     price: int | None = None          # USD cents; null/0 = free
     config_schema: dict[str, Any] = {}
     agents: list[AgentCreate] = []
+    agent_slugs: list[str] = []      # marketplace AgentProduct slugs to link
+    skill_slugs: list[str] = []      # marketplace Skill slugs to link
 
 
 class TemplateUpdate(BaseModel):
@@ -132,6 +134,8 @@ class TemplateUpdate(BaseModel):
     price: int | None = None
     config_schema: dict[str, Any] | None = None
     status: str | None = None
+    agent_slugs: list[str] | None = None
+    skill_slugs: list[str] | None = None
 
 
 class TemplateOut(OrmModel):
@@ -156,6 +160,8 @@ class TemplateOut(OrmModel):
     view_count: int
     author: UserPublic
     agents: list[AgentOut]
+    marketplace_agents: list[AgentProductSummary] = []
+    marketplace_skills: list[SkillSummary] = []
     created_at: datetime
     updated_at: datetime
 
@@ -251,6 +257,76 @@ class PurchaseOut(OrmModel):
     template: TemplateSummary
 
 
+# ── Skill ─────────────────────────────────────────────────────────
+
+class SkillCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+    category: str | None = None
+    description: str | None = None
+    long_description: str | None = None
+    instructions: str | None = None
+    parameters: list[str] = []
+    tags: list[str] = []
+    price: int | None = None
+    status: str = "published"
+
+
+class SkillUpdate(BaseModel):
+    name: str | None = None
+    category: str | None = None
+    description: str | None = None
+    long_description: str | None = None
+    instructions: str | None = None
+    parameters: list[str] | None = None
+    tags: list[str] | None = None
+    price: int | None = None
+    status: str | None = None
+
+
+class SkillSummary(OrmModel):
+    id: uuid.UUID
+    slug: str
+    name: str
+    category: str | None
+    description: str | None
+    tags: list[str] = []
+    price: int | None
+    status: str
+    view_count: int
+    purchase_count: int
+    author: UserPublic
+    created_at: datetime
+
+
+class SkillOut(OrmModel):
+    id: uuid.UUID
+    slug: str
+    name: str
+    category: str | None
+    description: str | None
+    long_description: str | None
+    instructions: str | None
+    parameters: list[str] = []
+    tags: list[str] = []
+    price: int | None
+    status: str
+    view_count: int
+    purchase_count: int
+    author: UserPublic
+    created_at: datetime
+    updated_at: datetime
+
+
+class SkillPurchaseOut(OrmModel):
+    id: uuid.UUID
+    skill_id: uuid.UUID
+    amount_paid: int
+    payment_ref: str | None
+    status: str
+    purchased_at: datetime
+    skill: SkillSummary
+
+
 # ── AgentProduct ──────────────────────────────────────────────────
 
 class AgentProductCreate(BaseModel):
@@ -264,6 +340,7 @@ class AgentProductCreate(BaseModel):
     tags: list[str] = []
     price: int | None = None
     status: str = "published"
+    skill_slugs: list[str] = []
 
 
 class AgentProductUpdate(BaseModel):
@@ -312,6 +389,7 @@ class AgentProductOut(OrmModel):
     view_count: int
     purchase_count: int
     author: UserPublic
+    skills: list[SkillSummary] = []
     created_at: datetime
     updated_at: datetime
 

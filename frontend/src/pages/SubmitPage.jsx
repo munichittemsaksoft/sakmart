@@ -3,15 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Plus, Trash2, Upload, Eye, Edit3, GitFork, Star,
   Layers, FileArchive, Download, CheckCircle2, AlertTriangle,
   XCircle, X, ChevronDown, ChevronUp, Zap,
   Users, TrendingUp, Clock, ArrowRight, DollarSign,
+  Bot, Puzzle, Check, Search,
 } from 'lucide-react'
 import { load as yamlLoad, dump as yamlDump } from 'js-yaml'
-import { templateApi, analyzeApi } from '@/utils/api'
+import { templateApi, analyzeApi, agentProductApi, skillApi } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
 import AgentGraph from '@/components/templates/AgentGraph'
 import toast from 'react-hot-toast'
@@ -741,6 +742,103 @@ function toPreviewData(v) {
   }
 }
 
+// ── Marketplace pickers ───────────────────────────────────────────────────────
+
+function AgentsPicker({ selected, onChange }) {
+  const [q, setQ] = useState('')
+  const { data: agents = [] } = useQuery({
+    queryKey: ['agents', 'picker'],
+    queryFn: () => agentProductApi.list({ limit: 100 }),
+    retry: 0,
+  })
+  const filtered = agents.filter(a =>
+    !q || a.name.toLowerCase().includes(q.toLowerCase()) || a.role.toLowerCase().includes(q.toLowerCase())
+  )
+  const toggle = (agent) => {
+    const already = selected.some(s => s.id === agent.id)
+    onChange(already ? selected.filter(s => s.id !== agent.id) : [...selected, agent])
+  }
+  return (
+    <div>
+      <div className="relative mb-3">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-700/40" />
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search agents…"
+          className="input pl-8 text-sm" />
+      </div>
+      {filtered.length === 0 ? (
+        <p className="text-xs text-dark-700/40 text-center py-3">No published agents found</p>
+      ) : (
+        <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+          {filtered.map(agent => {
+            const on = selected.some(s => s.id === agent.id)
+            return (
+              <button key={agent.id} type="button" onClick={() => toggle(agent)}
+                className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  on ? 'bg-violet-100 border-violet-400 text-violet-700' : 'bg-surface-muted border-surface-border text-dark-700/60 hover:border-violet-300'
+                }`}>
+                {on && <Check size={10} />}
+                <Bot size={11} />
+                {agent.name}
+              </button>
+            )
+          })}
+        </div>
+      )}
+      {selected.length > 0 && (
+        <p className="text-xs text-violet-600 mt-2">{selected.length} agent{selected.length !== 1 ? 's' : ''} attached</p>
+      )}
+    </div>
+  )
+}
+
+function SkillsPickerMarketplace({ selected, onChange }) {
+  const [q, setQ] = useState('')
+  const { data: skills = [] } = useQuery({
+    queryKey: ['skills', 'picker'],
+    queryFn: () => skillApi.list({ limit: 100 }),
+    retry: 0,
+  })
+  const filtered = skills.filter(s =>
+    !q || s.name.toLowerCase().includes(q.toLowerCase()) || s.category?.toLowerCase().includes(q.toLowerCase())
+  )
+  const toggle = (skill) => {
+    const already = selected.some(s => s.id === skill.id)
+    onChange(already ? selected.filter(s => s.id !== skill.id) : [...selected, skill])
+  }
+  return (
+    <div>
+      <div className="relative mb-3">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-700/40" />
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search skills…"
+          className="input pl-8 text-sm" />
+      </div>
+      {filtered.length === 0 ? (
+        <p className="text-xs text-dark-700/40 text-center py-3">No published skills found</p>
+      ) : (
+        <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+          {filtered.map(skill => {
+            const on = selected.some(s => s.id === skill.id)
+            return (
+              <button key={skill.id} type="button" onClick={() => toggle(skill)}
+                className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  on ? 'bg-amber-100 border-amber-400 text-amber-700' : 'bg-surface-muted border-surface-border text-dark-700/60 hover:border-amber-300'
+                }`}>
+                {on && <Check size={10} />}
+                <Puzzle size={11} />
+                {skill.name}
+                {skill.category && <span className="opacity-60">· {skill.category}</span>}
+              </button>
+            )
+          })}
+        </div>
+      )}
+      {selected.length > 0 && (
+        <p className="text-xs text-amber-600 mt-2">{selected.length} skill{selected.length !== 1 ? 's' : ''} attached</p>
+      )}
+    </div>
+  )
+}
+
 function TemplatePreview({ template, graphAgents, skills, onEdit, onSubmit, isSubmitting }) {
   const fmt = c => (c ? `$${(c / 100).toLocaleString()}` : '—')
 
@@ -930,6 +1028,8 @@ export default function SubmitPage() {
   const [aiLoading, setAiLoading]     = useState(false)
   const [graphAgents, setGraphAgents] = useState(null)
   const [skills, setSkills]           = useState(null)
+  const [selectedAgents, setSelectedAgents]             = useState([])
+  const [selectedMarketplaceSkills, setSelectedMarketplaceSkills] = useState([])
 
   const [newAgent, setNewAgent] = useState(BLANK_AGENT)
 
@@ -966,6 +1066,8 @@ export default function SubmitPage() {
       monthly_cost: values.monthly_cost ? values.monthly_cost * 100 : undefined,
       monthly_revenue_min: values.monthly_revenue_min ? values.monthly_revenue_min * 100 : undefined,
       agents,
+      agent_slugs: selectedAgents.map(a => a.slug),
+      skill_slugs: selectedMarketplaceSkills.map(s => s.slug),
     })
   }
 
@@ -1316,6 +1418,24 @@ export default function SubmitPage() {
                   <p className="text-xs text-dark-700/40 mt-2">{fields.length} agent{fields.length !== 1 ? 's' : ''} total</p>
                 </div>
               )}
+            </div>
+
+            <div className="card p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <Bot size={16} className="text-violet-500" />
+                <h2 className="font-display font-semibold text-base text-dark-950">Attach Marketplace Agents</h2>
+              </div>
+              <p className="text-xs text-dark-700/50">Link existing marketplace agents that this template uses.</p>
+              <AgentsPicker selected={selectedAgents} onChange={setSelectedAgents} />
+            </div>
+
+            <div className="card p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <Puzzle size={16} className="text-amber-500" />
+                <h2 className="font-display font-semibold text-base text-dark-950">Attach Marketplace Skills</h2>
+              </div>
+              <p className="text-xs text-dark-700/50">Link existing marketplace skills that the agents in this template rely on.</p>
+              <SkillsPickerMarketplace selected={selectedMarketplaceSkills} onChange={setSelectedMarketplaceSkills} />
             </div>
 
             <div className="flex gap-3">

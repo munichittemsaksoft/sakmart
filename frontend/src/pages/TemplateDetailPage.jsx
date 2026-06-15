@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   GitFork, Star, Eye, ArrowLeft, Layers, Download, Trash2,
   LayoutList, GitBranch, ShoppingCart, CheckCircle2, Lock, Check,
+  Bot, Puzzle,
 } from 'lucide-react'
 import { templateApi, purchaseApi } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
@@ -127,13 +128,9 @@ export default function TemplateDetailPage() {
             <div className="flex items-center gap-3 mb-3 flex-wrap">
               <span className="badge badge-blue">{template.category}</span>
               <span className="badge badge-green">Active</span>
-              {isPaid ? (
+              {isPaid && (
                 <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                   {fmtPrice(template.price)}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-primary-50 text-primary-600 border border-primary-200">
-                  Free
                 </span>
               )}
               {hasPurchased && (
@@ -206,6 +203,60 @@ export default function TemplateDetailPage() {
               ) : (
                 <AgentGraph agents={template.agents} />
               )}
+            </div>
+          )}
+          {/* Marketplace agents */}
+          {template.marketplace_agents?.length > 0 && (
+            <div className="card p-6">
+              <h2 className="font-display font-semibold text-lg flex items-center gap-2 mb-4">
+                <Bot size={18} className="text-violet-500" />
+                Agents Used
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {template.marketplace_agents.map(agent => (
+                  <Link
+                    key={agent.id}
+                    to={`/agents/${agent.slug}`}
+                    className="flex items-start gap-3 p-3 rounded-lg border border-surface-border hover:border-violet-200 hover:bg-violet-50/40 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center shrink-0">
+                      <Bot size={15} className="text-violet-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm text-dark-950 truncate">{agent.name}</p>
+                      <p className="text-xs text-dark-700/50 truncate">{agent.role}</p>
+                      {agent.price > 0 && (
+                        <p className="text-xs text-emerald-600 font-semibold mt-0.5">
+                          ${(agent.price / 100).toFixed(2)}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Marketplace skills */}
+          {template.marketplace_skills?.length > 0 && (
+            <div className="card p-6">
+              <h2 className="font-display font-semibold text-lg flex items-center gap-2 mb-4">
+                <Puzzle size={18} className="text-amber-500" />
+                Skills Used
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {template.marketplace_skills.map(skill => (
+                  <Link
+                    key={skill.id}
+                    to={`/skills/${skill.slug}`}
+                    className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
+                  >
+                    <Puzzle size={11} />
+                    {skill.name}
+                    {skill.category && <span className="text-amber-500/70">· {skill.category}</span>}
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
         </div>

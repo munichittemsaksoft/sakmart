@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowRight, GitFork, Zap, Shield, Users,
-  Bot, Building2, ShoppingCart, Check, Layers,
+  Bot, Puzzle, ShoppingCart, Check, Layers,
 } from 'lucide-react'
 import { templateApi, agentProductApi } from '@/utils/api'
 import TemplateCard from '@/components/templates/TemplateCard'
@@ -27,11 +27,11 @@ const FEATURES = [
     to: '/agents',
   },
   {
-    icon: Building2,
-    title: 'Company AI setups',
-    desc: 'Full company AI org charts with coordinated agent teams, ready to go.',
-    color: 'text-blue-600 bg-blue-50',
-    to: '/companies',
+    icon: Puzzle,
+    title: 'Reusable skills',
+    desc: 'Plug-and-play AI capabilities — search, email, data extraction, and more.',
+    color: 'text-amber-600 bg-amber-50',
+    to: '/skills',
   },
   {
     icon: Shield,
@@ -167,8 +167,8 @@ export default function HomePage() {
             <Link to="/agents" className="btn px-6 py-3 text-base bg-white/10 text-white border border-white/20 hover:bg-white/20 flex items-center gap-2">
               <Bot size={16} /> Explore agents
             </Link>
-            <Link to="/companies" className="btn px-6 py-3 text-base bg-white/10 text-white border border-white/20 hover:bg-white/20 flex items-center gap-2">
-              <Building2 size={16} /> Company setups
+            <Link to="/skills" className="btn px-6 py-3 text-base bg-white/10 text-white border border-white/20 hover:bg-white/20 flex items-center gap-2">
+              <Puzzle size={16} /> Browse skills
             </Link>
           </div>
 
@@ -257,7 +257,7 @@ export default function HomePage() {
         <div className="max-w-3xl mx-auto px-4 text-center text-white">
           <h2 className="font-display font-bold text-3xl mb-3">Built something agentic?</h2>
           <p className="text-white/75 mb-8 text-lg">
-            Share templates, agents, or company setups with thousands of builders — and earn from every sale.
+            Share templates, agents, or skills with thousands of builders — and earn from every sale.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/submit" className="btn bg-white text-primary-600 hover:bg-primary-50 px-6 py-3 font-semibold text-base">
@@ -265,6 +265,9 @@ export default function HomePage() {
             </Link>
             <Link to="/agents/submit" className="btn bg-white/10 text-white border border-white/30 hover:bg-white/20 px-6 py-3 font-semibold text-base flex items-center gap-2">
               <Bot size={16} /> List an agent
+            </Link>
+            <Link to="/skills/submit" className="btn bg-white/10 text-white border border-white/30 hover:bg-white/20 px-6 py-3 font-semibold text-base flex items-center gap-2">
+              <Puzzle size={16} /> List a skill
             </Link>
           </div>
         </div>

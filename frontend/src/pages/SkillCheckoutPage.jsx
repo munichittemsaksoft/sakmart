@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { ArrowLeft, CreditCard, Lock, ShieldCheck, Bot } from 'lucide-react'
-import { agentProductApi } from '@/utils/api'
+import { ArrowLeft, CreditCard, Lock, ShieldCheck, Puzzle } from 'lucide-react'
+import { skillApi } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
 import { Spinner } from '@/components/ui'
 import toast from 'react-hot-toast'
@@ -21,7 +21,7 @@ function formatExpiry(val) {
   return digits
 }
 
-export default function AgentCheckoutPage() {
+export default function SkillCheckoutPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const { user } = useAuthStore()
@@ -34,21 +34,21 @@ export default function AgentCheckoutPage() {
   })
   const [errors, setErrors] = useState({})
 
-  const { data: agent, isLoading } = useQuery({
-    queryKey: ['agent', slug],
-    queryFn: () => agentProductApi.get(slug),
+  const { data: skill, isLoading } = useQuery({
+    queryKey: ['skill', slug],
+    queryFn: () => skillApi.get(slug),
   })
 
   const buyMutation = useMutation({
-    mutationFn: () => agentProductApi.buy(slug, {
+    mutationFn: () => skillApi.buy(slug, {
       cardholder_name: form.cardholder_name,
       card_number: form.card_number.replace(/\s/g, ''),
       expiry: form.expiry,
       cvv: form.cvv,
     }),
     onSuccess: () => {
-      toast.success('Payment successful! You now own this agent.')
-      navigate(`/agents/${slug}`)
+      toast.success('Payment successful! You now own this skill.')
+      navigate(`/skills/${slug}`)
     },
     onError: (err) => toast.error(err.response?.data?.detail || 'Payment failed'),
   })
@@ -69,32 +69,31 @@ export default function AgentCheckoutPage() {
   }
 
   if (isLoading) return <div className="flex justify-center py-32"><Spinner size={28} /></div>
-  if (!agent) return <div className="text-center py-32 text-dark-700/50">Agent not found</div>
-  if (!agent.price || agent.price <= 0) {
+  if (!skill) return <div className="text-center py-32 text-dark-700/50">Skill not found</div>
+  if (!skill.price || skill.price <= 0) {
     return (
       <div className="text-center py-32 text-dark-700/50">
-        This agent is free.{' '}
-        <Link to={`/agents/${slug}`} className="text-primary-500 hover:underline">Go back</Link>
+        This skill is free.{' '}
+        <Link to={`/skills/${slug}`} className="text-primary-500 hover:underline">Go back</Link>
       </div>
     )
   }
-  if (user && String(agent.author?.id) === String(user.id)) {
+  if (user && String(skill.author?.id) === String(user.id)) {
     return (
       <div className="text-center py-32 text-dark-700/50">
-        You own this agent.{' '}
-        <Link to={`/agents/${slug}`} className="text-primary-500 hover:underline">View your listing</Link>
+        You own this skill.{' '}
+        <Link to={`/skills/${slug}`} className="text-primary-500 hover:underline">View your listing</Link>
       </div>
     )
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <Link to={`/agents/${slug}`} className="inline-flex items-center gap-1.5 text-sm text-dark-700/60 hover:text-primary-500 mb-8">
-        <ArrowLeft size={15} /> Back to agent
+      <Link to={`/skills/${slug}`} className="inline-flex items-center gap-1.5 text-sm text-dark-700/60 hover:text-primary-500 mb-8">
+        <ArrowLeft size={15} /> Back to skill
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Payment form */}
         <div className="lg:col-span-3">
           <div className="card p-6">
             <div className="flex items-center gap-2 mb-6">
@@ -154,7 +153,7 @@ export default function AgentCheckoutPage() {
                 className="btn-primary w-full justify-center py-3 text-base mt-2">
                 {buyMutation.isPending
                   ? <><Spinner size={16} /> Processing…</>
-                  : <><Lock size={16} /> Pay {formatPrice(agent.price)}</>}
+                  : <><Lock size={16} /> Pay {formatPrice(skill.price)}</>}
               </button>
             </form>
 
@@ -164,7 +163,6 @@ export default function AgentCheckoutPage() {
           </div>
         </div>
 
-        {/* Order summary */}
         <div className="lg:col-span-2">
           <div className="card p-5 sticky top-6">
             <h2 className="font-display font-semibold text-sm text-dark-700/60 uppercase tracking-wider mb-4">
@@ -172,20 +170,20 @@ export default function AgentCheckoutPage() {
             </h2>
 
             <div className="flex items-start gap-3 pb-4 border-b border-surface-border">
-              <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center shrink-0">
-                <Bot size={20} className="text-violet-600" />
+              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                <Puzzle size={20} className="text-amber-600" />
               </div>
               <div className="min-w-0">
-                <p className="font-semibold text-dark-950 text-sm leading-snug line-clamp-2">{agent.name}</p>
-                <p className="text-xs text-dark-700/50 mt-0.5">{agent.role} · {agent.tier}</p>
-                <p className="text-xs text-dark-700/40 mt-0.5">by @{agent.author?.username}</p>
+                <p className="font-semibold text-dark-950 text-sm leading-snug line-clamp-2">{skill.name}</p>
+                {skill.category && <p className="text-xs text-dark-700/50 mt-0.5">{skill.category}</p>}
+                <p className="text-xs text-dark-700/40 mt-0.5">by @{skill.author?.username}</p>
               </div>
             </div>
 
             <div className="space-y-2 py-4 border-b border-surface-border text-sm">
               <div className="flex justify-between">
-                <span className="text-dark-700/60">Agent price</span>
-                <span className="font-medium">{formatPrice(agent.price)}</span>
+                <span className="text-dark-700/60">Skill price</span>
+                <span className="font-medium">{formatPrice(skill.price)}</span>
               </div>
               <div className="flex justify-between text-dark-700/40">
                 <span>Tax</span>
@@ -195,13 +193,13 @@ export default function AgentCheckoutPage() {
 
             <div className="flex justify-between pt-4 font-display font-bold text-dark-950">
               <span>Total</span>
-              <span className="text-primary-600 text-lg">{formatPrice(agent.price)}</span>
+              <span className="text-primary-600 text-lg">{formatPrice(skill.price)}</span>
             </div>
 
             <div className="mt-4 space-y-1.5 text-xs text-dark-700/50">
               <p>✓ Lifetime access</p>
-              <p>✓ Full system instructions</p>
-              <p>✓ Model: {agent.model}</p>
+              <p>✓ Full integration instructions</p>
+              <p>✓ Parameters & usage guide</p>
             </div>
           </div>
         </div>

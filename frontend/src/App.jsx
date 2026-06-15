@@ -25,10 +25,11 @@ import AgentsMarketPage from '@/pages/AgentsMarketPage'
 import AgentProductDetailPage from '@/pages/AgentProductDetailPage'
 import SubmitAgentPage from '@/pages/SubmitAgentPage'
 import AgentCheckoutPage from '@/pages/AgentCheckoutPage'
-import CompaniesMarketPage from '@/pages/CompaniesMarketPage'
-import CompanyProductDetailPage from '@/pages/CompanyProductDetailPage'
-import SubmitCompanyPage from '@/pages/SubmitCompanyPage'
-import CompanyCheckoutPage from '@/pages/CompanyCheckoutPage'
+import SkillsMarketPage from '@/pages/SkillsMarketPage'
+import SkillDetailPage from '@/pages/SkillDetailPage'
+import SubmitSkillPage from '@/pages/SubmitSkillPage'
+import SkillCheckoutPage from '@/pages/SkillCheckoutPage'
+import EditSkillPage from '@/pages/EditSkillPage'
 
 const qc = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
@@ -69,10 +70,11 @@ const router = createBrowserRouter([
       { path: 'agents/submit',                 element: <SubmitAgentPage /> },
       { path: 'agents/checkout/:slug',         element: <AgentCheckoutPage /> },
       { path: 'agents/:slug',                  element: <AgentProductDetailPage /> },
-      { path: 'companies',                     element: <CompaniesMarketPage /> },
-      { path: 'companies/submit',              element: <SubmitCompanyPage /> },
-      { path: 'companies/checkout/:slug',      element: <CompanyCheckoutPage /> },
-      { path: 'companies/:slug',               element: <CompanyProductDetailPage /> },
+      { path: 'skills',                        element: <SkillsMarketPage /> },
+      { path: 'skills/submit',                 element: <SubmitSkillPage /> },
+      { path: 'skills/checkout/:slug',         element: <SkillCheckoutPage /> },
+      { path: 'skills/:slug/edit',             element: <EditSkillPage /> },
+      { path: 'skills/:slug',                  element: <SkillDetailPage /> },
       { path: '*',                             element: <NotFoundPage /> },
     ],
   },

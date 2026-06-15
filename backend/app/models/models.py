@@ -68,6 +68,8 @@ class User(Base):
     agent_product_purchases = relationship("AgentProductPurchase", back_populates="user", cascade="all, delete-orphan")
     company_products = relationship("CompanyProduct", back_populates="author", cascade="all, delete-orphan")
     company_product_purchases = relationship("CompanyProductPurchase", back_populates="user", cascade="all, delete-orphan")
+    skills = relationship("Skill", back_populates="author", cascade="all, delete-orphan")
+    skill_purchases = relationship("SkillPurchase", back_populates="user", cascade="all, delete-orphan")
 
 
 # ─────────────────────────────────────────────
@@ -108,6 +110,8 @@ class Template(Base):
     stars = relationship("Star", back_populates="template", cascade="all, delete-orphan")
     assets = relationship("Asset", back_populates="template", cascade="all, delete-orphan")
     purchases = relationship("Purchase", back_populates="template", cascade="all, delete-orphan")
+    marketplace_agents = relationship("AgentProduct", secondary="template_agent_products", back_populates="templates")
+    marketplace_skills = relationship("Skill", secondary="template_skills", back_populates="templates")
 
     __table_args__ = (
         Index("ix_templates_category_status", "category", "status"),
@@ -261,6 +265,8 @@ class AgentProduct(Base):
 
     author = relationship("User", back_populates="agent_products")
     purchases = relationship("AgentProductPurchase", back_populates="agent_product", cascade="all, delete-orphan")
+    skills = relationship("Skill", secondary="agent_product_skills", back_populates="agent_products")
+    templates = relationship("Template", secondary="template_agent_products", back_populates="marketplace_agents")
 
 
 class AgentProductPurchase(Base):
@@ -343,3 +349,73 @@ class CompanyProductPurchase(Base):
     company_product = relationship("CompanyProduct", back_populates="purchases")
 
     __table_args__ = (UniqueConstraint("user_id", "company_product_id", name="uq_company_product_purchase"),)
+
+
+# ─────────────────────────────────────────────
+# Skill  (reusable AI capability for sale)
+# ─────────────────────────────────────────────
+class Skill(Base):
+    __tablename__ = "skills"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    slug = Column(String(200), unique=True, nullable=False, index=True)
+    author_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    name = Column(String(200), nullable=False)
+    category = Column(String(100), nullable=True)
+    description = Column(Text, nullable=True)
+    long_description = Column(Text, nullable=True)
+    instructions = Column(Text, nullable=True)
+    parameters = Column(JSON, default=list)
+    tags = Column(JSON, default=list)
+    price = Column(Integer, nullable=True)           # USD cents; null = free
+    status = Column(String(20), default="draft")     # draft | published
+    view_count = Column(Integer, default=0)
+    purchase_count = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), default=now_utc)
+    updated_at = Column(DateTime(timezone=True), default=now_utc, onupdate=now_utc)
+
+    author = relationship("User", back_populates="skills")
+    purchases = relationship("SkillPurchase", back_populates="skill", cascade="all, delete-orphan")
+    agent_products = relationship("AgentProduct", secondary="agent_product_skills", back_populates="skills")
+    templates = relationship("Template", secondary="template_skills", back_populates="marketplace_skills")
+
+
+class AgentProductSkill(Base):
+    """Junction table linking AgentProduct → Skill (many-to-many)."""
+    __tablename__ = "agent_product_skills"
+
+    agent_product_id = Column(UUID(as_uuid=True), ForeignKey("agent_products.id", ondelete="CASCADE"), primary_key=True)
+    skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id", ondelete="CASCADE"), primary_key=True)
+
+
+class TemplateAgentProduct(Base):
+    """Junction table linking Template → AgentProduct (many-to-many)."""
+    __tablename__ = "template_agent_products"
+
+    template_id = Column(UUID(as_uuid=True), ForeignKey("templates.id", ondelete="CASCADE"), primary_key=True)
+    agent_product_id = Column(UUID(as_uuid=True), ForeignKey("agent_products.id", ondelete="CASCADE"), primary_key=True)
+
+
+class TemplateSkill(Base):
+    """Junction table linking Template → Skill (many-to-many)."""
+    __tablename__ = "template_skills"
+
+    template_id = Column(UUID(as_uuid=True), ForeignKey("templates.id", ondelete="CASCADE"), primary_key=True)
+    skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id", ondelete="CASCADE"), primary_key=True)
+
+
+class SkillPurchase(Base):
+    __tablename__ = "skill_purchases"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id"), nullable=False)
+    amount_paid = Column(Integer, nullable=False)
+    payment_ref = Column(String(100), nullable=True)
+    status = Column(String(20), default="completed")
+    purchased_at = Column(DateTime(timezone=True), default=now_utc)
+
+    user = relationship("User", back_populates="skill_purchases")
+    skill = relationship("Skill", back_populates="purchases")
+
+    __table_args__ = (UniqueConstraint("user_id", "skill_id", name="uq_skill_purchase"),)

@@ -108,6 +108,18 @@ export const agentProductApi = {
   mine: () => api.get('/agents/purchases/me').then(r => r.data),
 }
 
+// ── Skills ────────────────────────────────────────────────────
+export const skillApi = {
+  list: (params) => api.get('/skills', { params }).then(r => r.data),
+  get: (slug) => api.get(`/skills/${slug}`).then(r => r.data),
+  create: (data) => api.post('/skills', data).then(r => r.data),
+  update: (slug, data) => api.patch(`/skills/${slug}`, data).then(r => r.data),
+  delete: (slug) => api.delete(`/skills/${slug}`),
+  buy: (slug, paymentData) => api.post(`/skills/purchases/${slug}`, paymentData).then(r => r.data),
+  check: (slug) => api.get(`/skills/purchases/check/${slug}`).then(r => r.data),
+  mine: () => api.get('/skills/purchases/me').then(r => r.data),
+}
+
 // ── Company Products ──────────────────────────────────────────
 export const companyApi = {
   list: (params) => api.get('/companies', { params }).then(r => r.data),

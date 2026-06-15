@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import {
-  ShoppingCart, CreditCard, Lock, ShieldCheck, Bot, Layers,
+  ShoppingCart, CreditCard, Lock, ShieldCheck, Bot, Layers, Puzzle,
   CheckCircle2, AlertCircle, ArrowLeft, Trash2,
 } from 'lucide-react'
-import { purchaseApi, agentProductApi } from '@/utils/api'
+import { purchaseApi, agentProductApi, skillApi } from '@/utils/api'
 import { useCartStore } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
 import { Spinner } from '@/components/ui'
@@ -58,6 +58,8 @@ export default function CartCheckoutPage() {
             await purchaseApi.buy(item.slug, payment)
           } else if (item.type === 'agent') {
             await agentProductApi.buy(item.slug, payment)
+          } else if (item.type === 'skill') {
+            await skillApi.buy(item.slug, payment)
           }
           outcomes.push({ item, ok: true })
         } catch (err) {
@@ -260,11 +262,13 @@ export default function CartCheckoutPage() {
               {items.map((item) => (
                 <div key={item.id} className="flex items-center gap-2.5">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                    item.type === 'agent' ? 'bg-violet-50' : 'bg-primary-50'
+                    item.type === 'agent' ? 'bg-violet-50' : item.type === 'skill' ? 'bg-amber-50' : 'bg-primary-50'
                   }`}>
                     {item.type === 'agent'
                       ? <Bot size={15} className="text-violet-600" />
-                      : <Layers size={15} className="text-primary-600" />
+                      : item.type === 'skill'
+                        ? <Puzzle size={15} className="text-amber-600" />
+                        : <Layers size={15} className="text-primary-600" />
                     }
                   </div>
                   <p className="flex-1 text-sm text-dark-800 truncate min-w-0">{item.name}</p>

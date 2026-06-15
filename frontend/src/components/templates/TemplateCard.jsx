@@ -29,6 +29,7 @@ export default function TemplateCard({ template }) {
   const { addItem, hasItem } = useCartStore()
   const { user } = useAuthStore()
   const inCart = isPaid && hasItem(id)
+  const isOwner = user && String(author?.id) === String(user.id)
 
   function handleAddToCart(e) {
     e.preventDefault()
@@ -49,13 +50,9 @@ export default function TemplateCard({ template }) {
             {title[0]}
           </div>
           <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-            {isPaid ? (
+            {isPaid && (
               <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                 {formatCurrency(price)}
-              </span>
-            ) : (
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary-600 border border-primary-200">
-                Free
               </span>
             )}
             <span className={clsx(CATEGORY_COLORS[category] || 'badge-gray', 'text-xs')}>
@@ -114,8 +111,8 @@ export default function TemplateCard({ template }) {
               <span className="flex items-center gap-1"><Star size={12} /> {star_count}</span>
             </div>
 
-            {/* Cart button — only for paid items when logged in */}
-            {isPaid && user && (
+            {/* Cart button — only for paid items when logged in and not own listing */}
+            {isPaid && user && !isOwner && (
               <button
                 onClick={handleAddToCart}
                 title={inCart ? 'In cart' : 'Add to cart'}

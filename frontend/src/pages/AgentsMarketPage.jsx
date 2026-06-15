@@ -27,6 +27,7 @@ function AgentCard({ agent }) {
   const isPaid = agent.price > 0
   const price = formatPrice(agent.price)
   const inCart = isPaid && hasItem(agent.id)
+  const isOwner = user && String(agent.author?.id) === String(user.id)
 
   function handleAddToCart(e) {
     e.preventDefault()
@@ -79,7 +80,7 @@ function AgentCard({ agent }) {
           <span>by @{agent.author?.username}</span>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1"><Users size={11} /> {agent.purchase_count}</span>
-            {isPaid && user && (
+            {isPaid && user && !isOwner && (
               <button
                 onClick={handleAddToCart}
                 title={inCart ? 'In cart' : 'Add to cart'}

@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.db.session import get_db
 from app.core.deps import get_current_user, optional_user
-from app.models.models import AgentProduct, AgentProductPurchase, User
+from app.models.models import AgentProduct, AgentProductPurchase, Skill, User
 from app.schemas.schemas import (
     AgentProductCreate, AgentProductUpdate, AgentProductOut, AgentProductSummary,
     CheckoutRequest, AgentProductPurchaseOut,
@@ -156,14 +156,19 @@ def create_agent_product(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    data = body.model_dump()
+    skill_slugs = data.pop("skill_slugs", [])
     slug = _unique_slug(_slugify(body.name), db)
-    agent = AgentProduct(slug=slug, author_id=current_user.id, **body.model_dump())
+    agent = AgentProduct(slug=slug, author_id=current_user.id, **data)
     db.add(agent)
+    if skill_slugs:
+        linked_skills = db.query(Skill).filter(Skill.slug.in_(skill_slugs)).all()
+        agent.skills = linked_skills
     db.commit()
     db.refresh(agent)
     return (
         db.query(AgentProduct)
-        .options(joinedload(AgentProduct.author))
+        .options(joinedload(AgentProduct.author), joinedload(AgentProduct.skills).joinedload(Skill.author))
         .filter(AgentProduct.id == agent.id)
         .one()
     )
@@ -177,7 +182,7 @@ def get_agent_product(
 ):
     agent = (
         db.query(AgentProduct)
-        .options(joinedload(AgentProduct.author))
+        .options(joinedload(AgentProduct.author), joinedload(AgentProduct.skills).joinedload(Skill.author))
         .filter(AgentProduct.slug == slug)
         .first()
     )

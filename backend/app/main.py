@@ -134,6 +134,60 @@ async def lifespan(app: FastAPI):
                 CONSTRAINT uq_company_product_purchase UNIQUE (user_id, company_product_id)
             )
         """))
+        # Skills tables
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS skills (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                slug VARCHAR(200) UNIQUE NOT NULL,
+                author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                name VARCHAR(200) NOT NULL,
+                category VARCHAR(100),
+                description TEXT,
+                long_description TEXT,
+                instructions TEXT,
+                parameters JSONB DEFAULT '[]',
+                tags JSONB DEFAULT '[]',
+                price INTEGER,
+                status VARCHAR(20) DEFAULT 'draft',
+                view_count INTEGER DEFAULT 0,
+                purchase_count INTEGER DEFAULT 0,
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                updated_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS agent_product_skills (
+                agent_product_id UUID NOT NULL REFERENCES agent_products(id) ON DELETE CASCADE,
+                skill_id UUID NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+                PRIMARY KEY (agent_product_id, skill_id)
+            )
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS template_agent_products (
+                template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
+                agent_product_id UUID NOT NULL REFERENCES agent_products(id) ON DELETE CASCADE,
+                PRIMARY KEY (template_id, agent_product_id)
+            )
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS template_skills (
+                template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
+                skill_id UUID NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+                PRIMARY KEY (template_id, skill_id)
+            )
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS skill_purchases (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                skill_id UUID NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+                amount_paid INTEGER NOT NULL,
+                payment_ref VARCHAR(100),
+                status VARCHAR(20) DEFAULT 'completed',
+                purchased_at TIMESTAMPTZ DEFAULT NOW(),
+                CONSTRAINT uq_skill_purchase UNIQUE (user_id, skill_id)
+            )
+        """))
         conn.commit()
     # Ensure local upload dir exists
     if settings.storage_backend == "local":
