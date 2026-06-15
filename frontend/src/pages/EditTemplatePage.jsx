@@ -19,6 +19,7 @@ const schema = z.object({
   agent_count: z.coerce.number().int().min(1),
   monthly_cost: z.coerce.number().optional(),
   monthly_revenue_min: z.coerce.number().optional(),
+  price: z.coerce.number().min(0).optional(),
   status: z.enum(['draft', 'published', 'archived']),
 })
 
@@ -50,6 +51,7 @@ export default function EditTemplatePage() {
         agent_count: template.agent_count,
         monthly_cost: template.monthly_cost ? template.monthly_cost / 100 : '',
         monthly_revenue_min: template.monthly_revenue_min ? template.monthly_revenue_min / 100 : '',
+        price: template.price ? template.price / 100 : '',
         status: template.status,
       })
     }
@@ -107,6 +109,7 @@ export default function EditTemplatePage() {
       tags: values.tags ? values.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
       monthly_cost: values.monthly_cost ? Math.round(values.monthly_cost * 100) : undefined,
       monthly_revenue_min: values.monthly_revenue_min ? Math.round(values.monthly_revenue_min * 100) : undefined,
+      price: values.price ? Math.round(values.price * 100) : null,
     })
   }
 
@@ -146,10 +149,15 @@ export default function EditTemplatePage() {
           <F label="Full description" error={errors.long_description}>
             <textarea {...register('long_description')} rows={5} className="input resize-none" />
           </F>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <F label="Agent count" error={errors.agent_count}>
               <input {...register('agent_count')} type="number" min={1} className="input" />
             </F>
+            <F label="Selling price ($) — leave blank for free" error={errors.price}>
+              <input {...register('price')} type="number" min={0} step="0.01" className="input" placeholder="0.00 = Free" />
+            </F>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <F label="Est. cost/mo ($)" error={errors.monthly_cost}>
               <input {...register('monthly_cost')} type="number" className="input" />
             </F>

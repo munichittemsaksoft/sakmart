@@ -88,3 +88,42 @@ export const analyzeApi = {
     return api.post('/analyze', form).then(r => r.data)
   },
 }
+
+// ── Purchases ─────────────────────────────────────────────────
+export const purchaseApi = {
+  buy: (slug, paymentData) => api.post(`/purchases/${slug}`, paymentData).then(r => r.data),
+  check: (slug) => api.get(`/purchases/check/${slug}`).then(r => r.data),
+  mine: () => api.get('/purchases/me').then(r => r.data),
+}
+
+// ── Agent Products ────────────────────────────────────────────
+export const agentProductApi = {
+  list: (params) => api.get('/agents', { params }).then(r => r.data),
+  get: (slug) => api.get(`/agents/${slug}`).then(r => r.data),
+  create: (data) => api.post('/agents', data).then(r => r.data),
+  update: (slug, data) => api.patch(`/agents/${slug}`, data).then(r => r.data),
+  delete: (slug) => api.delete(`/agents/${slug}`),
+  buy: (slug, paymentData) => api.post(`/agents/purchases/${slug}`, paymentData).then(r => r.data),
+  check: (slug) => api.get(`/agents/purchases/check/${slug}`).then(r => r.data),
+  mine: () => api.get('/agents/purchases/me').then(r => r.data),
+}
+
+// ── Company Products ──────────────────────────────────────────
+export const companyApi = {
+  list: (params) => api.get('/companies', { params }).then(r => r.data),
+  get: (slug) => api.get(`/companies/${slug}`).then(r => r.data),
+  create: (data) => api.post('/companies', data).then(r => r.data),
+  update: (slug, data) => api.patch(`/companies/${slug}`, data).then(r => r.data),
+  delete: (slug) => api.delete(`/companies/${slug}`),
+  uploadZip: (slug, file, onProgress) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post(`/companies/${slug}/zip`, form, {
+      onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / e.total)),
+    }).then(r => r.data)
+  },
+  downloadUrl: (slug) => `${BASE_URL}/companies/${slug}/download`,
+  buy: (slug, paymentData) => api.post(`/companies/purchases/${slug}`, paymentData).then(r => r.data),
+  check: (slug) => api.get(`/companies/purchases/check/${slug}`).then(r => r.data),
+  mine: () => api.get('/companies/purchases/me').then(r => r.data),
+}

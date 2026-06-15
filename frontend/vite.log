@@ -107,3 +107,6 @@ AggregateError [ECONNREFUSED]:
     at internalConnectMultiple (node:net:1193:18)
     at afterConnectMultiple (node:net:1783:7)
 [2m11:10:16 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/App.jsx, /src/pages/EditTemplatePage.jsx, /src/pages/AuthPages.jsx, /src/components/layout/Navbar.jsx, /src/pages/DashboardPage.jsx, /src/pages/TemplateDetailPage.jsx, /src/pages/AdminPage.jsx, /src/pages/SubmitPage.jsx, /src/pages/ProfilePage.jsx, /src/pages/TemplatesPage.jsx, /src/pages/HomePage.jsx[22m
+[2m11:46:26 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/App.jsx, /src/pages/EditTemplatePage.jsx, /src/pages/AuthPages.jsx, /src/components/layout/Navbar.jsx, /src/pages/DashboardPage.jsx, /src/pages/TemplateDetailPage.jsx, /src/pages/AdminPage.jsx, /src/pages/SubmitPage.jsx, /src/pages/ProfilePage.jsx, /src/pages/TemplatesPage.jsx, /src/pages/HomePage.jsx[22m
+[2m11:47:38 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/styles/globals.css[22m
+[2m11:47:49 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/styles/globals.css[22m

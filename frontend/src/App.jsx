@@ -17,6 +17,18 @@ import ProfilePage from '@/pages/ProfilePage'
 import EditTemplatePage from '@/pages/EditTemplatePage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import AdminPage from '@/pages/AdminPage'
+import CheckoutPage from '@/pages/CheckoutPage'
+import PurchasesPage from '@/pages/PurchasesPage'
+import CartCheckoutPage from '@/pages/CartCheckoutPage'
+import CartDrawer from '@/components/cart/CartDrawer'
+import AgentsMarketPage from '@/pages/AgentsMarketPage'
+import AgentProductDetailPage from '@/pages/AgentProductDetailPage'
+import SubmitAgentPage from '@/pages/SubmitAgentPage'
+import AgentCheckoutPage from '@/pages/AgentCheckoutPage'
+import CompaniesMarketPage from '@/pages/CompaniesMarketPage'
+import CompanyProductDetailPage from '@/pages/CompanyProductDetailPage'
+import SubmitCompanyPage from '@/pages/SubmitCompanyPage'
+import CompanyCheckoutPage from '@/pages/CompanyCheckoutPage'
 
 const qc = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
@@ -30,6 +42,7 @@ function Layout() {
       <Navbar />
       <main className="flex-1"><Outlet /></main>
       <Footer />
+      <CartDrawer />
     </div>
   )
 }
@@ -49,7 +62,18 @@ const router = createBrowserRouter([
       { path: 'dashboard',             element: <DashboardPage /> },
       { path: 'profile',                element: <ProfilePage /> },
       { path: 'admin',                 element: <AdminPage /> },
-      { path: '*',                     element: <NotFoundPage /> },
+      { path: 'cart/checkout',                  element: <CartCheckoutPage /> },
+      { path: 'checkout/:slug',                element: <CheckoutPage /> },
+      { path: 'purchases',                     element: <PurchasesPage /> },
+      { path: 'agents',                        element: <AgentsMarketPage /> },
+      { path: 'agents/submit',                 element: <SubmitAgentPage /> },
+      { path: 'agents/checkout/:slug',         element: <AgentCheckoutPage /> },
+      { path: 'agents/:slug',                  element: <AgentProductDetailPage /> },
+      { path: 'companies',                     element: <CompaniesMarketPage /> },
+      { path: 'companies/submit',              element: <SubmitCompanyPage /> },
+      { path: 'companies/checkout/:slug',      element: <CompanyCheckoutPage /> },
+      { path: 'companies/:slug',               element: <CompanyProductDetailPage /> },
+      { path: '*',                             element: <NotFoundPage /> },
     ],
   },
 ])

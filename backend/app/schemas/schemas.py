@@ -114,6 +114,7 @@ class TemplateCreate(BaseModel):
     monthly_cost: int | None = None
     monthly_revenue_min: int | None = None
     monthly_revenue_max: int | None = None
+    price: int | None = None          # USD cents; null/0 = free
     config_schema: dict[str, Any] = {}
     agents: list[AgentCreate] = []
 
@@ -128,6 +129,7 @@ class TemplateUpdate(BaseModel):
     monthly_cost: int | None = None
     monthly_revenue_min: int | None = None
     monthly_revenue_max: int | None = None
+    price: int | None = None
     config_schema: dict[str, Any] | None = None
     status: str | None = None
 
@@ -145,6 +147,7 @@ class TemplateOut(OrmModel):
     monthly_cost: int | None
     monthly_revenue_min: int | None
     monthly_revenue_max: int | None
+    price: int | None
     thumbnail_url: str | None
     preview_images: list[str]
     zip_url: str | None
@@ -169,6 +172,7 @@ class TemplateSummary(OrmModel):
     monthly_cost: int | None
     monthly_revenue_min: int | None
     monthly_revenue_max: int | None
+    price: int | None
     thumbnail_url: str | None
     zip_url: str | None
     fork_count: int
@@ -226,3 +230,194 @@ class AssetOut(OrmModel):
     content_type: str | None
     size_bytes: int | None
     uploaded_at: datetime
+
+
+# ── Purchase ──────────────────────────────────────────────────────
+
+class CheckoutRequest(BaseModel):
+    card_number: str
+    expiry: str
+    cvv: str
+    cardholder_name: str
+
+
+class PurchaseOut(OrmModel):
+    id: uuid.UUID
+    template_id: uuid.UUID
+    amount_paid: int
+    payment_ref: str | None
+    status: str
+    purchased_at: datetime
+    template: TemplateSummary
+
+
+# ── AgentProduct ──────────────────────────────────────────────────
+
+class AgentProductCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+    role: str = Field(min_length=2, max_length=200)
+    model: str = Field(min_length=2, max_length=100)
+    tier: str = "Execution"
+    description: str | None = None
+    instructions: str | None = None
+    responsibilities: list[str] = []
+    tags: list[str] = []
+    price: int | None = None
+    status: str = "published"
+
+
+class AgentProductUpdate(BaseModel):
+    name: str | None = None
+    role: str | None = None
+    model: str | None = None
+    tier: str | None = None
+    description: str | None = None
+    instructions: str | None = None
+    responsibilities: list[str] | None = None
+    tags: list[str] | None = None
+    price: int | None = None
+    status: str | None = None
+
+
+class AgentProductSummary(OrmModel):
+    id: uuid.UUID
+    slug: str
+    name: str
+    role: str
+    model: str
+    tier: str
+    description: str | None
+    tags: list[str] = []
+    price: int | None
+    status: str
+    view_count: int
+    purchase_count: int
+    author: UserPublic
+    created_at: datetime
+
+
+class AgentProductOut(OrmModel):
+    id: uuid.UUID
+    slug: str
+    name: str
+    role: str
+    model: str
+    tier: str
+    description: str | None
+    instructions: str | None
+    responsibilities: list[str] = []
+    tags: list[str] = []
+    price: int | None
+    status: str
+    view_count: int
+    purchase_count: int
+    author: UserPublic
+    created_at: datetime
+    updated_at: datetime
+
+
+class AgentProductPurchaseOut(OrmModel):
+    id: uuid.UUID
+    agent_product_id: uuid.UUID
+    amount_paid: int
+    payment_ref: str | None
+    status: str
+    purchased_at: datetime
+    agent_product: AgentProductSummary
+
+
+# ── CompanyProduct ─────────────────────────────────────────────────
+
+class CompanyAgentCreate(BaseModel):
+    name: str
+    role: str
+    model: str
+    tier: str = "Execution"
+    responsibilities: list[str] = []
+    parent_name: str | None = None
+    position: int = 0
+
+
+class CompanyAgentOut(OrmModel):
+    id: uuid.UUID
+    name: str
+    role: str
+    model: str
+    tier: str
+    responsibilities: list[str] = []
+    parent_name: str | None
+    position: int
+
+
+class CompanyProductCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+    industry: str | None = None
+    description: str | None = None
+    long_description: str | None = None
+    mission: str | None = None
+    values: list[str] = []
+    tags: list[str] = []
+    price: int | None = None
+    status: str = "published"
+    agents: list[CompanyAgentCreate] = []
+
+
+class CompanyProductUpdate(BaseModel):
+    name: str | None = None
+    industry: str | None = None
+    description: str | None = None
+    long_description: str | None = None
+    mission: str | None = None
+    values: list[str] | None = None
+    tags: list[str] | None = None
+    price: int | None = None
+    status: str | None = None
+
+
+class CompanyProductSummary(OrmModel):
+    id: uuid.UUID
+    slug: str
+    name: str
+    industry: str | None
+    description: str | None
+    tags: list[str] = []
+    agent_count: int
+    price: int | None
+    zip_url: str | None
+    status: str
+    view_count: int
+    purchase_count: int
+    author: UserPublic
+    created_at: datetime
+
+
+class CompanyProductOut(OrmModel):
+    id: uuid.UUID
+    slug: str
+    name: str
+    industry: str | None
+    description: str | None
+    long_description: str | None
+    mission: str | None
+    values: list[str] = []
+    tags: list[str] = []
+    agent_count: int
+    price: int | None
+    zip_url: str | None
+    status: str
+    view_count: int
+    purchase_count: int
+    author: UserPublic
+    agents: list[CompanyAgentOut]
+    created_at: datetime
+    updated_at: datetime
+
+
+class CompanyProductPurchaseOut(OrmModel):
+    id: uuid.UUID
+    company_product_id: uuid.UUID
+    amount_paid: int
+    payment_ref: str | None
+    status: str
+    purchased_at: datetime
+    company_product: CompanyProductSummary

@@ -27,6 +27,7 @@ async def lifespan(app: FastAPI):
     with engine.connect() as conn:
         conn.execute(text("ALTER TABLE templates ADD COLUMN IF NOT EXISTS zip_url VARCHAR"))
         conn.execute(text("ALTER TABLE templates ADD COLUMN IF NOT EXISTS zip_storage_key VARCHAR"))
+        conn.execute(text("ALTER TABLE templates ADD COLUMN IF NOT EXISTS price INTEGER"))
         conn.execute(text("ALTER TABLE agents ADD COLUMN IF NOT EXISTS parent_name VARCHAR(100)"))
         # Convert role column from PostgreSQL enum to VARCHAR so we can add roles without DDL migrations
         conn.execute(text("""
@@ -37,6 +38,102 @@ async def lifespan(app: FastAPI):
         """))
         # Rename legacy 'creator' role to 'user'
         conn.execute(text("UPDATE users SET role = 'user' WHERE role = 'creator'"))
+        # Purchases table (created by Base.metadata.create_all above, but guard for safety)
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS purchases (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
+                amount_paid INTEGER NOT NULL,
+                payment_ref VARCHAR(100),
+                status VARCHAR(20) DEFAULT 'completed',
+                purchased_at TIMESTAMPTZ DEFAULT NOW(),
+                CONSTRAINT uq_purchase_user_template UNIQUE (user_id, template_id)
+            )
+        """))
+        # Agent products tables
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS agent_products (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                slug VARCHAR(200) UNIQUE NOT NULL,
+                author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                name VARCHAR(200) NOT NULL,
+                role VARCHAR(200) NOT NULL,
+                model VARCHAR(100) NOT NULL,
+                tier VARCHAR(50) DEFAULT 'Execution',
+                description TEXT,
+                instructions TEXT,
+                responsibilities JSONB DEFAULT '[]',
+                tags JSONB DEFAULT '[]',
+                price INTEGER,
+                status VARCHAR(20) DEFAULT 'draft',
+                view_count INTEGER DEFAULT 0,
+                purchase_count INTEGER DEFAULT 0,
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                updated_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS agent_product_purchases (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                agent_product_id UUID NOT NULL REFERENCES agent_products(id) ON DELETE CASCADE,
+                amount_paid INTEGER NOT NULL,
+                payment_ref VARCHAR(100),
+                status VARCHAR(20) DEFAULT 'completed',
+                purchased_at TIMESTAMPTZ DEFAULT NOW(),
+                CONSTRAINT uq_agent_product_purchase UNIQUE (user_id, agent_product_id)
+            )
+        """))
+        # Company products tables
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS company_products (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                slug VARCHAR(200) UNIQUE NOT NULL,
+                author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                name VARCHAR(200) NOT NULL,
+                industry VARCHAR(100),
+                description TEXT,
+                long_description TEXT,
+                mission TEXT,
+                values JSONB DEFAULT '[]',
+                tags JSONB DEFAULT '[]',
+                agent_count INTEGER DEFAULT 0,
+                price INTEGER,
+                zip_url VARCHAR,
+                zip_storage_key VARCHAR,
+                status VARCHAR(20) DEFAULT 'draft',
+                view_count INTEGER DEFAULT 0,
+                purchase_count INTEGER DEFAULT 0,
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                updated_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS company_agents (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                company_id UUID NOT NULL REFERENCES company_products(id) ON DELETE CASCADE,
+                name VARCHAR(100) NOT NULL,
+                role VARCHAR(100) NOT NULL,
+                model VARCHAR(100) NOT NULL,
+                tier VARCHAR(50) DEFAULT 'Execution',
+                responsibilities JSONB DEFAULT '[]',
+                parent_name VARCHAR(100),
+                position INTEGER DEFAULT 0
+            )
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS company_product_purchases (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                company_product_id UUID NOT NULL REFERENCES company_products(id) ON DELETE CASCADE,
+                amount_paid INTEGER NOT NULL,
+                payment_ref VARCHAR(100),
+                status VARCHAR(20) DEFAULT 'completed',
+                purchased_at TIMESTAMPTZ DEFAULT NOW(),
+                CONSTRAINT uq_company_product_purchase UNIQUE (user_id, company_product_id)
+            )
+        """))
         conn.commit()
     # Ensure local upload dir exists
     if settings.storage_backend == "local":

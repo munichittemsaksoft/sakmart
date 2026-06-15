@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Menu, X, ChevronDown, User, LogOut, Plus, ExternalLink, BookOpen, Shield } from 'lucide-react'
+import { Menu, X, ChevronDown, User, LogOut, Plus, ExternalLink, BookOpen, Shield, ShoppingBag, Bot, Building2, ShoppingCart } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
+import { useCartStore } from '@/store/cartStore'
 
 const ADMIN_ROLES = ['admin', 'super_admin']
 
@@ -20,6 +21,8 @@ export default function Navbar() {
   const [docsMenu, setDocsMenu] = useState(false)
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
+  const { items, toggleCart } = useCartStore()
+  const cartCount = items.length
   const docsRef = useRef(null)
 
   useEffect(() => {
@@ -50,8 +53,13 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link to="/templates" className="nav-link">Dashboard</Link>
-            <Link to="/submit" className="nav-link">Submit</Link>
+            <Link to="/templates" className="nav-link">Templates</Link>
+            <Link to="/agents" className="nav-link flex items-center gap-1">
+              <Bot size={13} className="text-violet-500" /> Agents
+            </Link>
+            <Link to="/companies" className="nav-link flex items-center gap-1">
+              <Building2 size={13} className="text-blue-500" /> Companies
+            </Link>
 
             {/* Docs dropdown */}
             <div className="relative" ref={docsRef}>
@@ -89,6 +97,20 @@ export default function Navbar() {
 
           {/* Desktop right */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Cart icon */}
+            <button
+              onClick={toggleCart}
+              className="relative p-2 rounded-lg hover:bg-surface-muted text-dark-700/60 hover:text-dark-900 transition-colors"
+              title="Cart"
+            >
+              <ShoppingCart size={18} />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-primary-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+
             {user ? (
               <>
                 <Link to="/submit" className="btn-accent text-sm px-4 py-2">
@@ -119,6 +141,10 @@ export default function Navbar() {
                         className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-dark-800 hover:bg-surface-soft">
                         <User size={15} /> Profile
                       </Link>
+                      <Link to="/purchases" onClick={() => setUserMenu(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-dark-800 hover:bg-surface-soft">
+                        <ShoppingBag size={15} /> My Purchases
+                      </Link>
                       {ADMIN_ROLES.includes(user.role) && (
                         <Link to="/admin" onClick={() => setUserMenu(false)}
                           className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-dark-800 hover:bg-surface-soft">
@@ -142,10 +168,23 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile toggle */}
-          <button className="md:hidden p-2 rounded-lg hover:bg-surface-muted" onClick={() => setOpen(!open)}>
-            {open ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          {/* Mobile: cart + hamburger */}
+          <div className="md:hidden flex items-center gap-1">
+            <button
+              onClick={toggleCart}
+              className="relative p-2 rounded-lg hover:bg-surface-muted text-dark-700/60"
+            >
+              <ShoppingCart size={18} />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-primary-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+            <button className="p-2 rounded-lg hover:bg-surface-muted" onClick={() => setOpen(!open)}>
+              {open ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -153,9 +192,17 @@ export default function Navbar() {
       {open && (
         <div className="md:hidden border-t border-surface-border bg-white px-4 py-4 space-y-2">
           <Link to="/templates" onClick={() => setOpen(false)}
-            className="block py-2 text-sm font-medium text-dark-800 hover:text-primary-500">Dashboard</Link>
+            className="block py-2 text-sm font-medium text-dark-800 hover:text-primary-500">Templates</Link>
+          <Link to="/agents" onClick={() => setOpen(false)}
+            className="flex items-center gap-1.5 py-2 text-sm font-medium text-dark-800 hover:text-violet-500">
+            <Bot size={14} className="text-violet-500" /> Agents
+          </Link>
+          <Link to="/companies" onClick={() => setOpen(false)}
+            className="flex items-center gap-1.5 py-2 text-sm font-medium text-dark-800 hover:text-blue-500">
+            <Building2 size={14} className="text-blue-500" /> Companies
+          </Link>
           <Link to="/submit" onClick={() => setOpen(false)}
-            className="block py-2 text-sm font-medium text-dark-800 hover:text-primary-500">Submit</Link>
+            className="block py-2 text-sm font-medium text-dark-800 hover:text-primary-500">Submit Template</Link>
           <div className="border-t border-surface-border pt-2 pb-1">
             <p className="text-xs font-semibold text-dark-700/40 uppercase tracking-wider mb-1">Docs</p>
             {DOCS_LINKS.map(({ label, href }) => (
@@ -170,6 +217,7 @@ export default function Navbar() {
             <>
               <div className="border-t border-surface-border pt-2">
                 <Link to="/profile" onClick={() => setOpen(false)} className="block py-2 text-sm">Profile</Link>
+                <Link to="/purchases" onClick={() => setOpen(false)} className="block py-2 text-sm">My Purchases</Link>
                 {ADMIN_ROLES.includes(user.role) && (
                   <Link to="/admin" onClick={() => setOpen(false)} className="block py-2 text-sm">Admin Panel</Link>
                 )}

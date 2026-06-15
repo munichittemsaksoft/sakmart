@@ -39,6 +39,7 @@ const schema = z.object({
   agent_count: z.coerce.number().int().min(1),
   monthly_cost: z.coerce.number().optional(),
   monthly_revenue_min: z.coerce.number().optional(),
+  price: z.coerce.number().min(0).optional(),
   agents: z.array(agentSchema).optional(),
 })
 
@@ -735,6 +736,7 @@ function toPreviewData(v) {
     agent_count:         Number(v.agent_count) || agents.length || 1,
     monthly_cost:        v.monthly_cost ? Number(v.monthly_cost) * 100 : null,
     monthly_revenue_min: v.monthly_revenue_min ? Number(v.monthly_revenue_min) * 100 : null,
+    price:               v.price ? Math.round(Number(v.price) * 100) : null,
     agents,
   }
 }
@@ -1197,10 +1199,15 @@ export default function SubmitPage() {
                   <input {...register('time_to_first_output')} className="input" placeholder="<5 min" />
                 </F>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <F label="Agent count *" error={errors.agent_count}>
                   <input {...register('agent_count')} type="number" min={1} className="input" />
                 </F>
+                <F label="Selling price ($) — leave blank for free" error={errors.price}>
+                  <input {...register('price')} type="number" min={0} step="0.01" className="input" placeholder="0.00 = Free" />
+                </F>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <F label="Est. cost/mo ($)" error={errors.monthly_cost}>
                   <input {...register('monthly_cost')} type="number" className="input" placeholder="145" />
                 </F>

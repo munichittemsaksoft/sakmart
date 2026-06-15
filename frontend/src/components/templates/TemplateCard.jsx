@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
-import { GitFork, Star, Users, TrendingUp } from 'lucide-react'
+import { GitFork, Star, Users, TrendingUp, ShoppingCart, Check } from 'lucide-react'
 import clsx from 'clsx'
+import { useCartStore } from '@/store/cartStore'
+import { useAuthStore } from '@/store/authStore'
 
 const CATEGORY_COLORS = {
   Marketing:   'badge-orange',
@@ -21,23 +23,40 @@ function formatCurrency(cents) {
 
 export default function TemplateCard({ template }) {
   const { slug, title, description, category, tags = [], agent_count,
-    monthly_cost, monthly_revenue_min, fork_count, star_count, author, status } = template
+    monthly_cost, monthly_revenue_min, fork_count, star_count, author, status, price, id } = template
+
+  const isPaid = price > 0
+  const { addItem, hasItem } = useCartStore()
+  const { user } = useAuthStore()
+  const inCart = isPaid && hasItem(id)
+
+  function handleAddToCart(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    addItem({ id, type: 'template', slug, name: title, price })
+  }
 
   return (
     <Link to={`/templates/${slug}`} className="card block group overflow-hidden">
-      {/* Thumbnail */}
-      <div className="h-3 bg-gradient-to-r from-primary-500 to-accent-500" />
+      {/* Top accent bar */}
+      <div className="h-1.5 bg-gradient-to-r from-primary-500 to-accent-500" />
 
       <div className="p-5">
-        {/* Header */}
+        {/* Header row */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center shrink-0
                           text-primary-600 font-display font-bold text-base">
             {title[0]}
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            {status === 'published' && (
-              <span className="badge badge-green text-xs">Active</span>
+          <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+            {isPaid ? (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                {formatCurrency(price)}
+              </span>
+            ) : (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary-600 border border-primary-200">
+                Free
+              </span>
             )}
             <span className={clsx(CATEGORY_COLORS[category] || 'badge-gray', 'text-xs')}>
               {category}
@@ -89,13 +108,27 @@ export default function TemplateCard({ template }) {
         {/* Footer */}
         <div className="flex items-center justify-between mt-3">
           <span className="text-xs text-dark-700/50">by @{author?.username}</span>
-          <div className="flex items-center gap-3 text-xs text-dark-700/50">
-            <span className="flex items-center gap-1">
-              <GitFork size={12} /> {fork_count}
-            </span>
-            <span className="flex items-center gap-1">
-              <Star size={12} /> {star_count}
-            </span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 text-xs text-dark-700/50">
+              <span className="flex items-center gap-1"><GitFork size={12} /> {fork_count}</span>
+              <span className="flex items-center gap-1"><Star size={12} /> {star_count}</span>
+            </div>
+
+            {/* Cart button — only for paid items when logged in */}
+            {isPaid && user && (
+              <button
+                onClick={handleAddToCart}
+                title={inCart ? 'In cart' : 'Add to cart'}
+                className={clsx(
+                  'ml-1 p-1.5 rounded-lg transition-colors',
+                  inCart
+                    ? 'bg-emerald-50 text-emerald-600'
+                    : 'bg-surface-muted text-dark-700/50 hover:bg-primary-50 hover:text-primary-600'
+                )}
+              >
+                {inCart ? <Check size={13} /> : <ShoppingCart size={13} />}
+              </button>
+            )}
           </div>
         </div>
       </div>

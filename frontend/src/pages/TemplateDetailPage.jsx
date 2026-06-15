@@ -1,7 +1,10 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { GitFork, Star, Eye, ArrowLeft, Layers, Download, Trash2, LayoutList, GitBranch } from 'lucide-react'
-import { templateApi } from '@/utils/api'
+import {
+  GitFork, Star, Eye, ArrowLeft, Layers, Download, Trash2,
+  LayoutList, GitBranch, ShoppingCart, CheckCircle2, Lock,
+} from 'lucide-react'
+import { templateApi, purchaseApi } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
 import { Spinner } from '@/components/ui'
 import AgentGraph from '@/components/templates/AgentGraph'
@@ -57,6 +60,13 @@ export default function TemplateDetailPage() {
     queryFn: () => templateApi.get(slug),
   })
 
+  // Check purchase status (only when logged in and template is paid)
+  const { data: purchaseCheck } = useQuery({
+    queryKey: ['purchase-check', slug],
+    queryFn: () => purchaseApi.check(slug),
+    enabled: !!user && !!template?.price && template.price > 0,
+  })
+
   const forkMutation = useMutation({
     mutationFn: () => templateApi.fork(slug),
     onSuccess: () => {
@@ -92,6 +102,14 @@ export default function TemplateDetailPage() {
   const execution   = byTier('execution')
 
   const fmt = (cents) => cents ? `$${(cents / 100).toLocaleString()}` : '—'
+  const fmtPrice = (cents) => `$${(cents / 100).toFixed(2)}`
+
+  // Access logic
+  const isPaid = template.price > 0
+  const isOwner = user && String(template.author?.id) === String(user.id)
+  const isAdmin = user && ['admin', 'super_admin'].includes(user.role)
+  const hasPurchased = purchaseCheck?.purchased === true
+  const hasAccess = !isPaid || isOwner || isAdmin || hasPurchased
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -104,9 +122,23 @@ export default function TemplateDetailPage() {
         <div className="lg:col-span-2 space-y-8">
           {/* Header */}
           <div>
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-3 mb-3 flex-wrap">
               <span className="badge badge-blue">{template.category}</span>
               <span className="badge badge-green">Active</span>
+              {isPaid ? (
+                <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  {fmtPrice(template.price)}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-primary-50 text-primary-600 border border-primary-200">
+                  Free
+                </span>
+              )}
+              {hasPurchased && (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                  <CheckCircle2 size={12} /> Purchased
+                </span>
+              )}
               {template.tags.map((t) => (
                 <span key={t} className="text-xs text-dark-700/50">#{t}</span>
               ))}
@@ -180,6 +212,19 @@ export default function TemplateDetailPage() {
         <div className="space-y-4">
           {/* Action card */}
           <div className="card p-6">
+            {/* Price highlight */}
+            {isPaid && (
+              <div className="text-center mb-5 pb-5 border-b border-surface-border">
+                <p className="text-xs text-dark-700/50 uppercase tracking-wider mb-1">Template price</p>
+                <p className="font-display font-bold text-3xl text-dark-950">{fmtPrice(template.price)}</p>
+                {hasPurchased && (
+                  <p className="text-xs text-emerald-600 flex items-center justify-center gap-1 mt-1">
+                    <CheckCircle2 size={12} /> You own this template
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3 mb-5">
               {[
@@ -221,14 +266,29 @@ export default function TemplateDetailPage() {
             {/* Actions */}
             {user ? (
               <div className="space-y-2">
-                <button
-                  onClick={() => forkMutation.mutate()}
-                  disabled={forkMutation.isPending}
-                  className="btn-primary w-full justify-center py-3"
-                >
-                  <GitFork size={16} />
-                  {forkMutation.isPending ? 'Forking…' : 'Fork this template'}
-                </button>
+                {/* Buy Now — paid + not yet purchased */}
+                {isPaid && !hasAccess && (
+                  <button
+                    onClick={() => navigate(`/checkout/${slug}`)}
+                    className="btn-primary w-full justify-center py-3 bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    <ShoppingCart size={16} />
+                    Buy Now · {fmtPrice(template.price)}
+                  </button>
+                )}
+
+                {/* Fork — available to everyone with access */}
+                {hasAccess && (
+                  <button
+                    onClick={() => forkMutation.mutate()}
+                    disabled={forkMutation.isPending}
+                    className="btn-primary w-full justify-center py-3"
+                  >
+                    <GitFork size={16} />
+                    {forkMutation.isPending ? 'Forking…' : 'Fork this template'}
+                  </button>
+                )}
+
                 <button
                   onClick={() => starMutation.mutate()}
                   disabled={starMutation.isPending}
@@ -238,14 +298,23 @@ export default function TemplateDetailPage() {
                 </button>
               </div>
             ) : (
-              <Link to="/login" className="btn-primary w-full justify-center py-3 block text-center">
-                Log in to fork
-              </Link>
+              <div className="space-y-2">
+                {isPaid ? (
+                  <Link to="/login" className="btn-primary w-full justify-center py-3 block text-center bg-emerald-600 hover:bg-emerald-700">
+                    <ShoppingCart size={16} />
+                    Log in to buy · {fmtPrice(template.price)}
+                  </Link>
+                ) : (
+                  <Link to="/login" className="btn-primary w-full justify-center py-3 block text-center">
+                    Log in to fork
+                  </Link>
+                )}
+              </div>
             )}
 
-            {/* Download — always visible */}
+            {/* Download */}
             <div className="pt-2 border-t border-surface-border mt-2">
-              {template.zip_url ? (
+              {template.zip_url && hasAccess ? (
                 <a
                   href={templateApi.downloadUrl(template.slug)}
                   download
@@ -253,6 +322,10 @@ export default function TemplateDetailPage() {
                 >
                   <Download size={15} /> Download ZIP
                 </a>
+              ) : template.zip_url && isPaid && !hasAccess ? (
+                <div className="flex items-center justify-center gap-2 text-sm text-dark-700/40 py-2">
+                  <Lock size={14} /> Purchase to download
+                </div>
               ) : (
                 <div className="flex items-center justify-center gap-2 text-sm text-dark-700/40 py-2">
                   <Download size={15} /> No ZIP available
@@ -262,7 +335,7 @@ export default function TemplateDetailPage() {
           </div>
 
           {/* Delete — owner / admin only */}
-          {user && (String(template.author?.id) === String(user.id) || ['admin', 'super_admin'].includes(user.role)) && (
+          {user && (isOwner || isAdmin) && (
             <div className="card p-4">
               {confirmDelete ? (
                 <div className="space-y-3">
